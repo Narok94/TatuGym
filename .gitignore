@@ -1,0 +1,10 @@
+node_modules
+dist
+*.local
+*.tsbuildinfo
+
+# Local credentials and deployment metadata
+.env
+.env.*
+!.env.example
+.vercel/
