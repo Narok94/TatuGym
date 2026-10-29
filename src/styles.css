@@ -406,28 +406,25 @@ strong {
   gap: 30px;
 }
 .weekly-checkin {
-  padding: 16px;
-  margin-bottom: 20px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
   border: 1px solid #ffffff26;
   border-radius: 18px;
   background: radial-gradient(ellipse at 50% 0, #202324e8, #080d0ee6 85%);
   box-shadow: inset 0 1px 0 #ffffff08;
   color: #f2f4f5;
 }
-.weekly-checkin-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.weekly-checkin-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
 .weekly-checkin-heading h2 { margin: 0; font-size: 10px; font-weight: 650; letter-spacing: 1px; }
 .weekly-checkin-heading > span { color: #f2f4f5; font-size: 11px; white-space: nowrap; }
 .weekly-checkin-heading strong { color: #ff7a24; font-size: 16px; font-weight: 750; }
 .weekly-checkin-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
-.checkin-day { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 68px; padding: 2px 0 7px; border: 0; background: transparent; border-radius: 8px; }
+.checkin-day { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 44px; padding: 0 0 4px; border: 0; background: transparent; border-radius: 8px; }
 .checkin-weekday { font-size: 9px; font-weight: 600; letter-spacing: .5px; color: #b9c0c4; }
-.checkin-plate { position: relative; display: block; width: min(100%, 42px); aspect-ratio: 1; }
-.checkin-plate > svg:first-child { display: block; width: 100%; height: 100%; overflow: visible; }
-.plate-body { stroke: #777d77; stroke-width: .7; }
-.plate-accent { fill: none; stroke: #ff7a24; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-.plate-hole { fill: #080c0d; stroke: #a4a7a0; stroke-width: .9; }
-.checkin-day.is-done .plate-hole { stroke: #ff8c3b; stroke-width: 2; }
-.checkin-check { position: absolute; right: -1px; top: 1px; padding: 3px; color: #fff; background: #ff7a24; border-radius: 50%; }
+.checkin-plate { position: relative; display: block; width: min(100%, 30px); aspect-ratio: 1; }
+.checkin-plate > img { display: block; width: 100%; height: 100%; object-fit: contain; filter: grayscale(1) brightness(.65); }
+.checkin-day.is-done .checkin-plate > img { filter: none; }
+.checkin-check { position: absolute; right: -2px; top: 0; width: 12px; height: 12px; padding: 2px; color: #fff; background: #ff7a24; border-radius: 50%; }
 .checkin-day[aria-current="date"]::after { content: ""; position: absolute; bottom: 0; width: 72%; max-width: 44px; height: 2px; border-radius: 2px; background: #ff7a24; }
 .checkin-day[aria-current="date"] .checkin-weekday { color: #ff9a54; }
 .checkin-day:disabled { cursor: default; opacity: 1; }
@@ -3360,4 +3357,55 @@ img.anatomy {
   .execution-values label > span { font-size: 11px; }
   .execution-circle { width: 52px; }
   .execution-timer strong { font-size: 28px; }
+}
+
+/* Compact dashboard only; leave other routes and safe-area space intact. */
+@media (max-width: 760px) {
+  .dashboard-home { padding-bottom: calc(76px + var(--safe-bottom, env(safe-area-inset-bottom, 0px))); }
+  .dashboard-home .topbar { height: 48px; padding-inline: 16px; }
+  .dashboard-home .brand { font-size: 19px; }
+  .dashboard-home .brand-mark { width: 29px; height: 29px; }
+  .dashboard-home .main-content { padding: 10px 16px; }
+  .dashboard-home .page-header { margin-bottom: 10px; }
+  .dashboard-home .page-header .eyebrow { margin-bottom: 4px; line-height: 1.3; }
+  .dashboard-home .page-header h1 { font-size: clamp(21px, 5.8vw, 26px); line-height: 1.15; letter-spacing: -.7px; }
+  .dashboard-home .page-description { margin-top: 4px; font-size: 11px; line-height: 1.4; }
+  .dashboard-home .dashboard-grid { gap: 8px; }
+  .dashboard-home .weekly-checkin { margin-bottom: 0; }
+  .dashboard-home .hero-workout { min-height: 0; padding: 12px 14px; border-radius: 16px; }
+  .dashboard-home .hero-kicker { display: none; }
+  .dashboard-home .hero-workout .pill { padding: 4px 8px; font-size: 8px; line-height: 1.2; }
+  .dashboard-home .hero-workout h2 { margin: 5px 0 4px; font-size: 32px; line-height: 1.1; }
+  .dashboard-home .hero-groups { font-size: 11px; line-height: 1.35; }
+  .dashboard-home .hero-meta { margin: 8px 0 10px; gap: 10px; font-size: 10px; line-height: 1.3; }
+  .dashboard-home .hero-workout .button { min-height: 44px; padding-inline: 14px; font-size: 12px; }
+  .dashboard-home .hero-workout > img.anatomy { width: 45%; height: calc(100% - 55px); top: 4px; right: 4px; object-fit: contain; object-position: right center; }
+  .dashboard-home .hero-number { display: none; }
+  .dashboard-home .next-meal { margin-top: 0; padding: 12px 14px; grid-template-columns: 36px minmax(0, 1fr) auto; column-gap: 10px; }
+  .dashboard-home .next-meal .tile-icon { width: 36px; height: 36px; border-radius: 10px; }
+  .dashboard-home .next-meal h3 { margin-top: 3px; font-size: 17px; line-height: 1.2; }
+  .dashboard-home .next-meal .meal-time { margin-top: 3px; font-size: 11px; }
+  .dashboard-home .bottom-nav { padding: 8px 17px calc(8px + var(--safe-bottom, env(safe-area-inset-bottom, 0px))); }
+}
+@media (max-height: 700px) and (max-width: 760px) {
+  .dashboard-home { padding-bottom: calc(64px + var(--safe-bottom, env(safe-area-inset-bottom, 0px))); }
+  .dashboard-home .topbar { height: 40px; }
+  .dashboard-home .main-content { padding: 6px 12px; }
+  .dashboard-home .page-header { margin-bottom: 6px; }
+  .dashboard-home .page-header h1 { font-size: 21px; }
+  .dashboard-home .page-header .eyebrow { font-size: 8px; margin-bottom: 2px; }
+  .dashboard-home .page-description { font-size: 10px; margin-top: 2px; }
+  .dashboard-home .dashboard-grid { gap: 6px; }
+  .dashboard-home .weekly-checkin { padding: 5px 10px; }
+  .dashboard-home .weekly-checkin-heading h2 { font-size: 9px; }
+  .dashboard-home .weekly-checkin-heading strong { font-size: 14px; }
+  .dashboard-home .checkin-plate { width: 27px; }
+  .dashboard-home .hero-workout { padding: 9px 12px; }
+  .dashboard-home .hero-workout h2 { font-size: 28px; margin: 4px 0 3px; }
+  .dashboard-home .hero-workout .pill { padding: 3px 6px; font-size: 7px; }
+  .dashboard-home .hero-meta { margin: 6px 0 8px; font-size: 9px; }
+  .dashboard-home .hero-workout .button { min-height: 44px; }
+  .dashboard-home .next-meal { padding: 9px 12px; }
+  .dashboard-home .next-meal h3 { font-size: 16px; }
+  .dashboard-home .bottom-nav { padding-top: 4px; padding-bottom: calc(4px + var(--safe-bottom, env(safe-area-inset-bottom, 0px))); }
 }

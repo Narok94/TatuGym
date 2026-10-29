@@ -205,7 +205,7 @@ export default function App() {
       </main>
     );
   return (
-    <div className={`app-shell ${page === "session" && data.activeSession ? "executing" : ""}`}>
+    <div className={`app-shell ${page === "home" ? "dashboard-home" : ""} ${page === "session" && data.activeSession ? "executing" : ""}`}>
       <header className="topbar">
         <button
           className="brand-button"

@@ -1,6 +1,7 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import { Check } from "lucide-react";
 import { localDate, STORAGE_KEY } from "../store";
+import plateImage from "../assets/interface/anilha_checkin.png";
 
 const storageKey = `${STORAGE_KEY}:weekly-checkins`;
 const weekdays = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"];
@@ -17,7 +18,6 @@ function readRecords(): Record<string, true> {
 }
 
 export function WeeklyCheckIn({ today }: { today: Date }) {
-  const gradientId = useId();
   const [initial] = useState(() => {
     try { return { records: readRecords(), error: "" }; }
     catch { return { records: {}, error: "Não foi possível acessar os check-ins salvos." }; }
@@ -58,23 +58,7 @@ export function WeeklyCheckIn({ today }: { today: Date }) {
         aria-pressed={!!records[day.date]} aria-current={day.date === date ? "date" : undefined}
         disabled={day.date > date} onClick={() => toggle(day.date)}>
         <span className="checkin-plate">
-          <svg viewBox="0 0 48 48" aria-hidden="true">
-            <defs>
-              <linearGradient id={`${gradientId}-${day.date}-metal`} x1="0" y1="0" x2="1" y2="1">
-                <stop stopColor="#9b9d97" /><stop offset=".22" stopColor="#353938" />
-                <stop offset=".55" stopColor="#080b0c" /><stop offset=".8" stopColor="#555955" /><stop offset="1" stopColor="#151919" />
-              </linearGradient>
-              <radialGradient id={`${gradientId}-${day.date}-face`} cx="35%" cy="25%" r="80%">
-                <stop stopColor="#383d3c" /><stop offset=".65" stopColor="#171b1c" /><stop offset="1" stopColor="#080b0c" />
-              </radialGradient>
-            </defs>
-            <path className="plate-body" d="M14 3H34L46 24 34 45H14L2 24Z"
-              fill={`url(#${gradientId}-${day.date}-metal)`} />
-            <circle cx="24" cy="24" r="18" fill={`url(#${gradientId}-${day.date}-face)`} stroke="#555b58" strokeWidth=".7" />
-            {records[day.date] && <path className="plate-accent" d="M34 3H14L2 24 14 45H34L46 24" />}
-            <circle cx="24" cy="24" r="8" fill={`url(#${gradientId}-${day.date}-metal)`} />
-            <circle className="plate-hole" cx="24" cy="24" r="5.5" />
-          </svg>
+          <img src={plateImage} alt="" width="32" height="32" decoding="async" />
           {records[day.date] && <Check className="checkin-check" size={17} strokeWidth={3} aria-hidden="true" />}
         </span>
         <span className="checkin-weekday">{day.label}</span>

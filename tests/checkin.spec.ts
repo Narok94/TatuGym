@@ -63,3 +63,39 @@ test('uses local dates, stays above workout and fits mobile safe areas', async (
   await expect(card).toContainText('4/7 dias');
   await page.screenshot({ path: `test-results/checkin-${test.info().project.name}.png` });
 });
+
+test('entire dashboard fits iPhone portrait screens without scrolling or overlaps', async ({ page }) => {
+  for (const size of [
+    { width:320, height:568, top:20, bottom:0 },
+    { width:375, height:667, top:20, bottom:0 },
+    { width:375, height:812, top:44, bottom:34 },
+    { width:390, height:844, top:59, bottom:34 },
+    { width:393, height:852, top:59, bottom:34 },
+    { width:430, height:932, top:59, bottom:34 },
+  ]) {
+    await page.setViewportSize({width:size.width,height:size.height});
+    await page.addStyleTag({content:`:root { --safe-top:${size.top}px; --safe-bottom:${size.bottom}px; }`});
+    await page.evaluate(() => scrollTo(0,0));
+    expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight), JSON.stringify(size)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const selectors=['.topbar','.page-header','.weekly-checkin','.hero-workout','.next-meal','.bottom-nav'];
+    let bottom=size.top;
+    for(const selector of selectors) {
+      const box=(await page.locator(selector).boundingBox())!;
+      expect(box.y,selector).toBeGreaterThanOrEqual(bottom - 1);
+      expect(box.y+box.height,selector).toBeLessThanOrEqual(size.height + 1);
+      bottom=box.y+box.height;
+    }
+    await expect(page.locator('.hero-workout .button')).toBeVisible();
+    await expect.poll(() => page.locator('.checkin-plate img').evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  }
+  await page.getByRole('button',{name:'Check-in QUI, 29/10/2026'}).click();
+  await expect(page.locator('.weekly-checkin')).toContainText('1/7 dias');
+  await page.getByRole('button',{name:'Iniciar treino',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Supino reto',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Sair da execução e preservar progresso',exact:true}).click();
+  await page.getByRole('button',{name:'Início',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Continuar treino',exact:true})).toBeVisible();
+  await page.locator('.next-meal').click();
+  await expect(page.locator('.dashboard-home')).toHaveCount(0);
+});
