@@ -87,6 +87,17 @@ test('entire dashboard fits iPhone portrait screens without scrolling or overlap
       bottom=box.y+box.height;
     }
     await expect(page.locator('.hero-workout .button')).toBeVisible();
+    const meal = (await page.locator('.next-meal').boundingBox())!;
+    const nav = (await page.locator('.bottom-nav').boundingBox())!;
+    expect(nav.y - meal.y - meal.height, 'no unused space below cards').toBeLessThanOrEqual(13);
+    expect(nav.height - size.bottom, 'compact navigation without removing safe area').toBeLessThanOrEqual(54);
+    expect((await page.locator('.bottom-nav button').first().boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    const action = (await page.locator('.hero-workout .button').boundingBox())!;
+    const hero = (await page.locator('.hero-workout').boundingBox())!;
+    expect(action.y + action.height).toBeLessThanOrEqual(hero.y + hero.height);
+    if(size.width === 390 || size.width === 320) {
+      await page.screenshot({path:`test-results/dashboard-${size.width}-${test.info().project.name}.png`});
+    }
     await expect.poll(() => page.locator('.checkin-plate img').evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
   }
   await page.getByRole('button',{name:'Check-in QUI, 29/10/2026'}).click();
