@@ -13,6 +13,7 @@ import {
 import type { AppData, Workout } from "../types";
 import { localDate } from "../store";
 import { Anatomy } from "../components/Anatomy";
+import { WeeklyCheckIn } from "../components/WeeklyCheckIn";
 import {
   PageHeader,
   SectionTitle,
@@ -61,6 +62,7 @@ export default function Home({
       />
       <div className="dashboard-grid">
         <div className="dashboard-main">
+          <WeeklyCheckIn today={now} />
           <section className="hero-workout">
             <Anatomy group={workout.muscle} />
             <div className="hero-content">
