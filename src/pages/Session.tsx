@@ -14,6 +14,7 @@ export default function Session({ session, update, back, finish }: {
   const [now, setNow] = useState(Date.now());
   const [showList, setShowList] = useState(false);
   const [locked, setLocked] = useState(false);
+  const [emptyField, setEmptyField] = useState<string | null>(null);
   const lockUntil = useRef(0);
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -32,10 +33,13 @@ export default function Session({ session, update, back, finish }: {
   const remaining = rest.endsAt ? Math.max(0, Math.ceil((rest.endsAt - now) / 1000)) : rest.remaining;
   const running = !!rest.endsAt && remaining > 0;
   const ratio = exercise.rest > 0 ? Math.min(1, remaining / exercise.rest) : 0;
-  const valid = Number.isInteger(values.reps) && values.reps >= 1 && values.reps <= 999 && Number.isFinite(values.load) && values.load >= 0 && values.load <= 1000;
+  const valid = emptyField !== `${key}:load` && emptyField !== `${key}:reps` && Number.isInteger(values.reps) && values.reps >= 1 && values.reps <= 999 && Number.isFinite(values.load) && values.load >= 0 && values.load <= 1000;
   const move = (i: number) => { update(s => selectExercise(s, i)); setShowList(false); };
-  function draft(field: "load" | "reps", value: number) {
-    update(s => ({ ...s, drafts: { ...s.drafts, [key]: { ...values, [field]: value } } }));
+  function draft(field: "load" | "reps", value: string) {
+    setEmptyField(value === "" ? `${key}:${field}` : null);
+    // Keep an empty edit local; preserve the last saved number until replaced.
+    if (value === "") return;
+    update(s => ({ ...s, drafts: { ...s.drafts, [key]: { ...values, [field]: Number(value) } } }));
   }
   function confirm() {
     if (index === undefined || !valid || Date.now() < lockUntil.current) return;
@@ -57,10 +61,12 @@ export default function Session({ session, update, back, finish }: {
       <button className="execution-icon next" disabled={currentExercise === workout.exercises.length - 1} aria-label="Próximo exercício" onClick={() => move(currentExercise + 1)}><ChevronRight /></button>
     </div>
     <div className="execution-values" key={key}>
-      <label><input aria-label="Repetições da série atual" type="number" inputMode="numeric" min="1" max="999" step="1" disabled={index === undefined} value={Number.isNaN(values.reps) ? "" : values.reps}
-        onChange={e => draft("reps", Number(e.target.value))} /><span>repetições <small>alvo {exercise.reps}</small></span></label>
-      <label><input aria-label="Carga da série atual em kg" type="number" inputMode="decimal" min="0" max="1000" step="0.5" disabled={index === undefined} value={Number.isNaN(values.load) ? "" : values.load}
-        onChange={e => draft("load", Number(e.target.value))} /><span>kg</span></label>
+      <label><input aria-label="Repetições da série atual" type="number" inputMode="numeric" min="1" max="999" step="1" disabled={index === undefined} value={emptyField === `${key}:reps` || Number.isNaN(values.reps) ? "" : values.reps}
+        onFocus={e => { if (e.currentTarget.value === "0") draft("reps", ""); else e.currentTarget.select(); }}
+        onBlur={() => setEmptyField(null)} onChange={e => draft("reps", e.target.value)} /><span>repetições <small>alvo {exercise.reps}</small></span></label>
+      <label><input aria-label="Carga da série atual em kg" type="number" inputMode="decimal" min="0" max="1000" step="0.5" disabled={index === undefined} value={emptyField === `${key}:load` || Number.isNaN(values.load) ? "" : values.load}
+        onFocus={e => { if (e.currentTarget.value === "0") draft("load", ""); else e.currentTarget.select(); }}
+        onBlur={() => setEmptyField(null)} onChange={e => draft("load", e.target.value)} /><span>kg</span></label>
     </div>
     <div className="execution-rest">
       <div className="execution-timer">

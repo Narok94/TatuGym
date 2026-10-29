@@ -36,6 +36,27 @@ test('dashboard, image-only cards, details and responsive layout', async ({page}
   }
 });
 
+test('load and reps can be cleared and typed without a leading zero', async ({page}) => {
+  await setup(page); await start(page);
+  const load = page.getByRole('spinbutton', {name:'Carga da série atual em kg', exact:true});
+  const reps = page.getByRole('spinbutton', {name:'Repetições da série atual', exact:true});
+  const complete = page.getByRole('button', {name:'Concluir série atual', exact:true});
+  await load.fill('0'); await load.blur(); await load.focus();
+  await expect(load).toHaveValue(''); await expect(complete).toBeDisabled();
+  await load.pressSequentially('30'); await expect(load).toHaveValue('30');
+  await load.fill(''); await expect(load).toHaveValue('');
+  await expect(complete).toBeDisabled();
+  expect(Object.values((await saved(page)).activeSession.drafts)[0]).toMatchObject({load:30});
+  await load.blur(); await expect(load).toHaveValue('30');
+  await load.fill(''); await load.pressSequentially('32.5');
+  await reps.fill(''); await expect(reps).toHaveValue(''); await expect(complete).toBeDisabled();
+  await reps.pressSequentially('12'); await expect(reps).toHaveValue('12');
+  await confirm(page);
+  expect((await saved(page)).activeSession.sets[0]).toMatchObject({load:32.5,reps:12});
+  await page.reload();
+  expect((await saved(page)).activeSession.sets[0]).toMatchObject({load:32.5,reps:12});
+});
+
 test('series edits, double taps, rest pause/resume/skip, navigation and reload', async ({page}) => {
   await setup(page); await start(page);
   await expect(page.getByRole('timer')).toContainText('00:00');
