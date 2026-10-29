@@ -2,6 +2,7 @@ import {
   ChevronRight,
   Clock3,
   Dumbbell,
+  Play,
 } from "lucide-react";
 import type { Workout } from "../types";
 import { Anatomy } from "../components/Anatomy";
@@ -17,9 +18,11 @@ const workoutCards: Record<string, string> = { a: treinoA, b: treinoB, c: treino
 export function Workouts({
   workouts,
   navigate,
+  activeWorkoutName,
 }: {
   workouts: Workout[];
   navigate: (page: string) => void;
+  activeWorkoutName?: string;
 }) {
   return (
     <>
@@ -27,7 +30,15 @@ export function Workouts({
         eyebrow="SEU PLANO DE TREINO"
         title="Meus treinos"
         description="Cada treino, um passo mais perto da sua melhor versão."
-      />
+      >
+        {activeWorkoutName && (
+          <button className="resume-banner" onClick={() => navigate("session")}
+            aria-label={`Continuar ${activeWorkoutName} em andamento`}>
+            <span><strong>{activeWorkoutName}</strong><br />em andamento</span>
+            <Play size={14} fill="currentColor" />
+          </button>
+        )}
+      </PageHeader>
       <div className="workout-grid">
         {workouts.map((w) => (
           <button key={w.id} className="workout-card asset-workout-card"

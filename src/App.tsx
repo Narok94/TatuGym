@@ -4,7 +4,6 @@ import {
   Check,
   Dumbbell,
   Flame,
-  Play,
   ShieldCheck,
   WifiOff,
 } from "lucide-react";
@@ -242,18 +241,11 @@ export default function App() {
         </div>
       )}
       <main className="main-content" id="main-content">
-        {data.activeSession && page !== "session" && (
-          <button className="resume-banner" onClick={() => navigate("session")}>
-            <span className="pulse-dot" />
-            <strong>{data.activeSession.workout.name}</strong>
-            <span>em andamento</span>
-            <Play size={15} fill="currentColor" />
-          </button>
-        )}
         {page === "home" ? (
           <Home data={data} navigate={navigate} start={start} />
         ) : page === "workouts" ? (
-          <Workouts workouts={data.workouts} navigate={navigate} />
+          <Workouts workouts={data.workouts} navigate={navigate}
+            activeWorkoutName={data.activeSession?.workout.name} />
         ) : page.startsWith("workout/") && currentWorkout ? (
           <WorkoutDetails
             workout={currentWorkout}
