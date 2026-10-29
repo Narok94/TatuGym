@@ -91,7 +91,9 @@ test('entire dashboard fits iPhone portrait screens without scrolling or overlap
     const nav = (await page.locator('.bottom-nav').boundingBox())!;
     expect(nav.y - meal.y - meal.height, 'no unused space below cards').toBeLessThanOrEqual(13);
     expect(nav.height - size.bottom, 'compact navigation without removing safe area').toBeLessThanOrEqual(54);
-    expect((await page.locator('.bottom-nav button').first().boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    const navButton = (await page.locator('.bottom-nav button').first().boundingBox())!;
+    expect(navButton.height).toBeGreaterThanOrEqual(44);
+    expect(navButton.y + navButton.height, 'menu aligned to the lower safe boundary').toBeCloseTo(size.height - size.bottom, 0);
     const action = (await page.locator('.hero-workout .button').boundingBox())!;
     const hero = (await page.locator('.hero-workout').boundingBox())!;
     expect(action.y + action.height).toBeLessThanOrEqual(hero.y + hero.height);
@@ -109,4 +111,21 @@ test('entire dashboard fits iPhone portrait screens without scrolling or overlap
   await expect(page.getByRole('button',{name:'Continuar treino',exact:true})).toBeVisible();
   await page.locator('.next-meal').click();
   await expect(page.locator('.dashboard-home')).toHaveCount(0);
+});
+
+test('dashboard header matches the workout page header', async ({page}) => {
+  for(const width of [320,390]) {
+    await page.setViewportSize({width,height:844});
+    const metrics = () => page.locator('.topbar').evaluate(header => {
+      const brand=header.querySelector('.brand')!;
+      const mark=header.querySelector('.brand-mark')!;
+      return {height:header.getBoundingClientRect().height,
+        padding:getComputedStyle(header).paddingInline,
+        font:getComputedStyle(brand).fontSize, mark:mark.getBoundingClientRect().width};
+    });
+    const home=await metrics();
+    await page.getByRole('button',{name:'Treinos',exact:true}).click();
+    expect(await metrics()).toEqual(home);
+    await page.getByRole('button',{name:'Início',exact:true}).click();
+  }
 });
