@@ -242,6 +242,14 @@ export default function App() {
         </div>
       )}
       <main className="main-content" id="main-content">
+        {data.activeSession && page !== "session" && (
+          <button className="resume-banner" onClick={() => navigate("session")}>
+            <span className="pulse-dot" />
+            <strong>{data.activeSession.workout.name}</strong>
+            <span>em andamento</span>
+            <Play size={15} fill="currentColor" />
+          </button>
+        )}
         {page === "home" ? (
           <Home data={data} navigate={navigate} start={start} />
         ) : page === "workouts" ? (
@@ -336,14 +344,6 @@ export default function App() {
           </div>
         )}
       </main>
-      {data.activeSession && page !== "session" && (
-        <button className="resume-banner" onClick={() => navigate("session")}>
-          <span className="pulse-dot" />
-          <strong>{data.activeSession.workout.name}</strong>
-          <span>em andamento</span>
-          <Play size={15} fill="currentColor" />
-        </button>
-      )}
       <BottomNav page={page} navigate={navigate} />
       {restNotice && <div className="rest-notice" role="status">Descanso concluído. Pronto para a próxima série!</div>}
       {editingExercise && (

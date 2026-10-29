@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Clock3,
   Dumbbell,
-  Flame,
   Play,
   Sparkles,
   Utensils,
@@ -93,15 +92,6 @@ export default function Home({
               0{workout.id === "a" ? "1" : workout.id === "b" ? "2" : "3"}
             </span>
           </section>
-          <div className="motivation">
-            <span>
-              <Flame size={20} />
-            </span>
-            <div>
-              <strong>Consistência transforma.</strong>
-              <p>O resultado de amanhã começa com a escolha de hoje.</p>
-            </div>
-          </div>
         </div>
         <aside className="dashboard-aside">
           <SectionTitle title="No seu ritmo" />
