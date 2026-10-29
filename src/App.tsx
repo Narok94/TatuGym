@@ -9,7 +9,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import type { Exercise, Meal, Session as SessionType, Workout } from "./types";
-import { isComplete, signalRestEnd } from "./sessionLogic";
+import { isComplete, selectExercise, signalRestEnd } from "./sessionLogic";
 import { createInitialData } from "./data";
 import { localDate, uid, useAppData } from "./store";
 import { Anatomy } from "./components/Anatomy";
@@ -35,6 +35,7 @@ export default function App() {
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const [finishModal, setFinishModal] = useState(false);
   const [startConflict, setStartConflict] = useState<Workout | null>(null);
+  const [pendingExerciseId, setPendingExerciseId] = useState<string>();
   const [finished, setFinished] = useState<{
     name: string;
     sets: number;
@@ -83,23 +84,28 @@ export default function App() {
       window.scrollTo(0, 0);
     } else location.hash = next;
   };
-  const startNew = (workout: Workout) => {
+  const startNew = (workout: Workout, exerciseId?: string) => {
     const session: SessionType = {
       id: uid(),
       workout: structuredClone(workout),
       startedAt: new Date().toISOString(),
-      currentExercise: 0,
+      currentExercise: Math.max(0, workout.exercises.findIndex(e => e.id === exerciseId)),
       sets: [],
       rest: { remaining: 0, endsAt: null },
     };
     setData((d) => ({ ...d, activeSession: session }));
     navigate("session");
   };
-  const start = (workout: Workout) => {
+  const start = (workout: Workout, exerciseId?: string) => {
     if (data.activeSession) {
-      if (data.activeSession.workout.id === workout.id) navigate("session");
-      else setStartConflict(workout);
-    } else startNew(workout);
+      if (data.activeSession.workout.id === workout.id) {
+        if (exerciseId) updateSession(s => selectExercise(s, s.workout.exercises.findIndex(e => e.id === exerciseId)));
+        navigate("session");
+      } else {
+        setPendingExerciseId(exerciseId);
+        setStartConflict(workout);
+      }
+    } else startNew(workout, exerciseId);
   };
   const updateSession = (fn: (session: SessionType) => SessionType) =>
     setData((d) =>
@@ -245,7 +251,7 @@ export default function App() {
             workout={currentWorkout}
             back={() => navigate("workouts")}
             start={() => start(currentWorkout)}
-            edit={setEditingExercise}
+            execute={(exerciseId) => start(currentWorkout, exerciseId)}
           />
         ) : page === "session" && data.activeSession ? (
           <Session
@@ -393,7 +399,7 @@ export default function App() {
             <button
               className="button secondary"
               onClick={() => {
-                startNew(startConflict);
+                startNew(startConflict, pendingExerciseId);
                 setStartConflict(null);
               }}
             >

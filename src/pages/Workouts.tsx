@@ -2,9 +2,8 @@ import {
   ChevronRight,
   Clock3,
   Dumbbell,
-  Pencil,
 } from "lucide-react";
-import type { Exercise, Workout } from "../types";
+import type { Workout } from "../types";
 import { Anatomy } from "../components/Anatomy";
 import { ExerciseImage } from "../components/ExerciseImage";
 import treinoA from "../assets/cards/treino_a.png";
@@ -46,12 +45,12 @@ export function WorkoutDetails({
   workout,
   back,
   start,
-  edit,
+  execute,
 }: {
   workout: Workout;
   back: () => void;
   start: () => void;
-  edit: (exercise: Exercise) => void;
+  execute: (exerciseId: string) => void;
 }) {
   return (
     <>
@@ -92,8 +91,8 @@ export function WorkoutDetails({
               <button
                 className="exercise-card"
                 key={e.id}
-                onClick={() => edit(e)}
-                aria-label={`Editar ${e.name}`}
+                onClick={() => execute(e.id)}
+                aria-label={`Executar ${e.name}`}
               >
                 <span className="exercise-number">
                   {String(i + 1).padStart(2, "0")}
@@ -108,14 +107,12 @@ export function WorkoutDetails({
                     {e.load} kg <span>·</span> {e.rest}s de descanso
                   </small>
                 </span>
-                <Pencil size={16} className="edit-icon" />
                 <ChevronRight className="mobile-chevron" size={18} />
               </button>
             ))}
           </div>
           <p className="demo-note">
-            Toque em um exercício para editar séries, repetições, carga e
-            descanso.
+            Toque em um exercício para iniciar ou continuar sua execução.
           </p>
         </section>
       </div>

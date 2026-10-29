@@ -3215,7 +3215,7 @@ img.anatomy {
   padding-right: env(safe-area-inset-right, 0px);
   overflow-x: clip;
 }
-.workout-card.asset-workout-card { padding: 0; height: auto; align-self: start; }
+.workout-card.asset-workout-card { padding: 0; height: auto; align-self: start; border: 0; }
 .workout-card-image { border-radius: inherit; }
 .workout-overview .detail-art { height: 155px; padding: 0; }
 .workout-overview .detail-art::after { content: none; }
