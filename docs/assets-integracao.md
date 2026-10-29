@@ -1,4 +1,6 @@
-# Integração de assets locais
+# Integração inicial de assets locais
+
+> Registro da integração anterior. A execução atual utiliza as 20 ilustrações e associações descritas em [ilustracoes-execucao.md](ilustracoes-execucao.md); todos os PNGs anteriores foram preservados.
 
 34 PNGs inspecionados visualmente: 16 utilizados e 18 sem uso. Arquivos originais preservados, com canal alpha e sem conversão, recorte ou geração de novas imagens. Importações estáticas pelo Vite; apenas assets utilizados entram no bundle e no precache existente do Workbox.
 

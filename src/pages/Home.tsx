@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -8,8 +9,6 @@ import {
   Flame,
   Play,
   Sparkles,
-  Sun,
-  TrendingUp,
   Utensils,
 } from "lucide-react";
 import type { AppData, Workout } from "../types";
@@ -17,8 +16,6 @@ import { localDate } from "../store";
 import { Anatomy } from "../components/Anatomy";
 import {
   PageHeader,
-  ProgressRing,
-  RowLink,
   SectionTitle,
 } from "../components/UI";
 
@@ -38,7 +35,12 @@ export default function Home({
   navigate: (page: string) => void;
   start: (workout: Workout) => void;
 }) {
-  const now = new Date(),
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const
     hour = now.getHours(),
     today = localDate();
   const workout = data.activeSession?.workout || suggestedWorkout(data);
@@ -47,27 +49,6 @@ export default function Home({
   const time = `${String(hour).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   const pending = meals.filter((m) => !logs.includes(m.id));
   const nextMeal = pending.find((m) => m.time >= time) || pending[0];
-  const todaySessions = data.history.filter(
-    (h) => localDate(new Date(h.finishedAt)) === today,
-  );
-  const activeToday =
-    data.activeSession &&
-    localDate(new Date(data.activeSession.startedAt)) === today
-      ? [data.activeSession]
-      : [];
-  const completed = [...todaySessions, ...activeToday].reduce(
-    (sum, s) =>
-      sum +
-      s.workout.exercises.filter(
-        (e) => s.sets.filter((l) => l.exerciseId === e.id).length >= e.sets,
-      ).length,
-    0,
-  );
-  const total =
-    [...todaySessions, ...activeToday].reduce(
-      (sum, s) => sum + s.workout.exercises.length,
-      0,
-    ) || workout.exercises.length;
   return (
     <>
       <PageHeader
@@ -78,11 +59,7 @@ export default function Home({
         })}
         title={`${hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite"}, ${data.user.name}!`}
         description="Um passo de cada vez. Todos os dias."
-      >
-        <div className="greeting-icon">
-          <Sun size={25} />
-        </div>
-      </PageHeader>
+      />
       <div className="dashboard-grid">
         <div className="dashboard-main">
           <section className="hero-workout">
@@ -116,25 +93,6 @@ export default function Home({
               0{workout.id === "a" ? "1" : workout.id === "b" ? "2" : "3"}
             </span>
           </section>
-          <SectionTitle
-            title="Seu progresso hoje"
-            action="Ver evolução"
-            onAction={() => navigate("progress")}
-          />
-          <div className="stats-grid">
-            <ProgressRing
-              value={completed}
-              total={total}
-              label="Exercícios concluídos"
-              icon={<Dumbbell size={25} />}
-            />
-            <ProgressRing
-              value={logs.length}
-              total={data.meals.length}
-              label="Refeições realizadas"
-              icon={<Utensils size={23} />}
-            />
-          </div>
           <div className="motivation">
             <span>
               <Flame size={20} />
@@ -184,21 +142,6 @@ export default function Home({
               <ChevronRight size={16} />
             </span>
           </button>
-          <SectionTitle title="Acesso rápido" />
-          <div className="quick-links">
-            <RowLink
-              icon={<Dumbbell size={21} />}
-              title="Meus treinos"
-              description="Seu plano, sua evolução"
-              onClick={() => navigate("workouts")}
-            />
-            <RowLink
-              icon={<TrendingUp size={21} />}
-              title="Meu progresso"
-              description="Cada conquista conta"
-              onClick={() => navigate("progress")}
-            />
-          </div>
           <div className="small-note">
             <Sparkles size={16} />
             <p>

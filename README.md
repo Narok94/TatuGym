@@ -29,7 +29,7 @@ Após o primeiro carregamento completo online, o aplicativo de produção abre e
 - Entrada, dashboard com saudação dinâmica e sugestão sequencial de treinos A/B/C.
 - Fichas com cards e ilustrações anatômicas PNG locais, imagens dos exercícios compatíveis, grupos musculares e duração estimada. Consulte [o inventário de assets](docs/assets-integracao.md) para associações e arquivos sem uso.
 - Edição de nomes, séries, repetições, cargas e descanso do plano demonstrativo.
-- Execução com registro de cada série, repetições e carga individual, progresso, navegação e descanso com iniciar, pausar e pular.
+- Execução com um exercício por vez, ilustração anatômica, edição da série atual, confirmação protegida contra toques repetidos e avanço automático. Descanso circular inicia após concluir uma série, com pausar, retomar, pular e aviso visual/som/vibração quando disponíveis. Lista permite trocar livremente de exercício. Conclusão de todas as séries salva automaticamente no histórico.
 - Retomada do treino em andamento após recarregar, incluindo séries, rascunhos de carga/repetições e descanso baseado no horário real.
 - Refeições por horário, alimentos e quantidades editáveis, marcação diária opcional.
 - Histórico de treinos e cargas, peso por data e gráfico das últimas 14 medições. Todos os registros de peso permanecem disponíveis na lista.
@@ -55,8 +55,8 @@ src/
 public/        # ícones locais, incluindo Apple Touch Icon e maskable
 ```
 
-O estado possui versão e identidade de usuário; o armazenamento é isolado por usuário. Isso prepara uma futura camada de contas e migração de dados sem implementar múltiplos usuários agora. Os registros de treino guardam uma cópia da ficha executada, preservando o histórico quando o plano é editado. Os PNGs mantêm transparência e proporções, com precache para uso offline. O Perfil reserva um espaço para notificações futuras.
+O estado possui versão e identidade de usuário; o armazenamento é isolado por usuário. Isso prepara uma futura camada de contas e migração de dados sem implementar múltiplos usuários agora. Os registros de treino guardam uma cópia da ficha executada, preservando o histórico quando o plano é editado. Os assets preservam proporções, com PNGs originais mantidos e ilustrações de execução em WebP no precache para uso offline. O Perfil reserva um espaço para notificações futuras.
 
 ## Validação
 
-`npm run build` executa a checagem estrita do TypeScript e o build de produção. Os fluxos de séries, retomada após recarregar, descanso, histórico, refeições, peso e temas foram conferidos no navegador durante a implementação.
+`npm test` executa os fluxos em Chromium e WebKit com viewport móvel. `npm run build` executa a checagem estrita do TypeScript e o build de produção. Os fluxos de séries, retomada após recarregar, descanso, histórico, refeições, peso e temas foram conferidos no navegador durante a implementação.

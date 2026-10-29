@@ -9,6 +9,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import type { Exercise, Meal, Session as SessionType, Workout } from "./types";
+import { isComplete, signalRestEnd } from "./sessionLogic";
 import { createInitialData } from "./data";
 import { localDate, uid, useAppData } from "./store";
 import { Anatomy } from "./components/Anatomy";
@@ -89,7 +90,7 @@ export default function App() {
       startedAt: new Date().toISOString(),
       currentExercise: 0,
       sets: [],
-      rest: { remaining: workout.exercises[0].rest, endsAt: null },
+      rest: { remaining: 0, endsAt: null },
     };
     setData((d) => ({ ...d, activeSession: session }));
     navigate("session");
@@ -104,6 +105,41 @@ export default function App() {
     setData((d) =>
       d.activeSession ? { ...d, activeSession: fn(d.activeSession) } : d,
     );
+  useEffect(() => {
+    if (!data.activeSession || !isComplete(data.activeSession)) return;
+    const session = data.activeSession;
+    setData(d => d.activeSession?.id !== session.id ? d : {
+      ...d, activeSession: null,
+      history: d.history.some(h => h.id === session.id) ? d.history : [{
+        ...d.activeSession, finishedAt: new Date().toISOString(), rest: { remaining: 0, endsAt: null },
+      }, ...d.history],
+    });
+    setFinished({ name: session.workout.name, sets: session.sets.length });
+    navigate("progress");
+  }, [data.activeSession, setData]);
+  const [restNotice, setRestNotice] = useState(false);
+  const restDeadline = data.activeSession?.rest.endsAt;
+  useEffect(() => {
+    if (!restDeadline) return;
+    setRestNotice(false);
+    const check = () => {
+      if (Date.now() < restDeadline) return;
+      window.clearInterval(timer);
+      signalRestEnd();
+      setRestNotice(true);
+      setData(d => !d.activeSession || d.activeSession.rest.endsAt !== restDeadline ? d : {
+        ...d, activeSession: { ...d.activeSession, rest: { remaining: 0, endsAt: null } },
+      });
+    };
+    const timer = window.setInterval(check, 250);
+    check();
+    return () => window.clearInterval(timer);
+  }, [restDeadline, setData]);
+  useEffect(() => {
+    if (!restNotice) return;
+    const timer = window.setTimeout(() => setRestNotice(false), 6000);
+    return () => window.clearTimeout(timer);
+  }, [restNotice]);
   const currentWorkout = data.workouts.find((w) => w.id === page.split("/")[1]);
   if (!data.welcomed)
     return (
@@ -164,7 +200,7 @@ export default function App() {
       </main>
     );
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${page === "session" && data.activeSession ? "executing" : ""}`}>
       <header className="topbar">
         <button
           className="brand-button"
@@ -181,9 +217,9 @@ export default function App() {
           <button
             className="avatar-small"
             onClick={() => navigate("profile")}
-            aria-label="Abrir perfil de Henrique"
+            aria-label={`Abrir perfil de ${data.user.name}`}
           >
-            H
+            {data.user.name.trim().charAt(0).toUpperCase()}
           </button>
         </div>
       </header>
@@ -303,6 +339,7 @@ export default function App() {
         </button>
       )}
       <BottomNav page={page} navigate={navigate} />
+      {restNotice && <div className="rest-notice" role="status">Descanso concluído. Pronto para a próxima série!</div>}
       {editingExercise && (
         <ExerciseEditor
           exercise={editingExercise}
@@ -381,7 +418,7 @@ export default function App() {
               className="button primary"
               onClick={() => {
                 const session = data.activeSession!;
-                setData((d) => ({
+                setData((d) => d.activeSession?.id !== session.id ? d : ({
                   ...d,
                   activeSession: null,
                   history: [
