@@ -90,7 +90,7 @@ test('entire dashboard fits iPhone portrait screens without scrolling or overlap
     const meal = (await page.locator('.next-meal').boundingBox())!;
     const nav = (await page.locator('.bottom-nav').boundingBox())!;
     expect(nav.y - meal.y - meal.height, 'no unused space below cards').toBeLessThanOrEqual(13);
-    const navInset = Math.min(6, size.bottom);
+    const navInset = Math.min(20, size.bottom);
     expect(nav.height - navInset, 'compact navigation with reduced lower spacing').toBeLessThanOrEqual(54);
     const navButton = (await page.locator('.bottom-nav button').first().boundingBox())!;
     expect(navButton.height).toBeGreaterThanOrEqual(44);
@@ -151,7 +151,7 @@ test('navigation stays flush with the viewport and identical on every mobile rou
           })};
       });
       expect(metrics.y+metrics.height).toBe(size.height);
-      expect(metrics.paddingBottom).toBe(`${Math.min(6,size.bottom)}px`);
+      expect(metrics.paddingBottom).toBe(`${Math.min(20,size.bottom)}px`);
       if(baseline) expect(metrics).toEqual(baseline); else baseline=metrics;
       await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
       expect((await nav.boundingBox())!.y).toBe(metrics.y);

@@ -2526,7 +2526,7 @@ select {
     top: -5px;
   }
   .app-shell {
-    --mobile-nav-inset: min(6px, var(--safe-bottom, env(safe-area-inset-bottom, 0px)));
+    --mobile-nav-inset: min(20px, var(--safe-bottom, env(safe-area-inset-bottom, 0px)));
     --mobile-nav-height: calc(49px + var(--mobile-nav-inset));
     padding-bottom: var(--mobile-nav-height);
   }
