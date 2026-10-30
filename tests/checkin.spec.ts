@@ -129,3 +129,33 @@ test('dashboard header matches the workout page header', async ({page}) => {
     await page.getByRole('button',{name:'Início',exact:true}).click();
   }
 });
+
+test('navigation stays flush with the viewport and identical on every mobile route', async ({page}) => {
+  await page.getByRole('button',{name:'Iniciar treino',exact:true}).click();
+  for(const size of [{width:320,height:568,bottom:0},{width:390,height:844,bottom:34}]) {
+    await page.setViewportSize({width:size.width,height:size.height});
+    await page.addStyleTag({content:`:root { --safe-bottom:${size.bottom}px; }`});
+    let baseline: unknown;
+    for(const route of ['home','workouts','workout/a','diet','profile','progress','session']) {
+      await page.evaluate(route=>{location.hash=route;},route);
+      await expect(page).toHaveURL(new RegExp(`#${route}$`));
+      await expect(page.locator('.dashboard-home')).toHaveCount(route==='home'?1:0);
+      const nav=page.getByRole('navigation',{name:'Navegação principal'});
+      const metrics=await nav.evaluate(el=>{
+        const rect=el.getBoundingClientRect();
+        return {x:rect.x,y:rect.y,width:rect.width,height:rect.height,
+          paddingBottom:getComputedStyle(el).paddingBottom,
+          buttons:Array.from(el.querySelectorAll('button')).map(button=>{
+            const box=button.getBoundingClientRect();return {y:box.y,height:box.height};
+          })};
+      });
+      expect(metrics.y+metrics.height).toBe(size.height);
+      expect(metrics.paddingBottom).toBe(`${size.bottom}px`);
+      if(baseline) expect(metrics).toEqual(baseline); else baseline=metrics;
+      await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
+      expect((await nav.boundingBox())!.y).toBe(metrics.y);
+      await page.evaluate(()=>scrollTo(0,0));
+      if(route==='home'||route==='workouts') await page.screenshot({path:`test-results/nav-${route}-${size.width}-${test.info().project.name}.png`});
+    }
+  }
+});
