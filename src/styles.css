@@ -2508,7 +2508,7 @@ select {
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
-    padding: 4px 17px var(--safe-bottom, env(safe-area-inset-bottom, 0px));
+    padding: 4px 17px var(--mobile-nav-inset);
     box-shadow: 0 -4px 25px #00000003;
   }
   .bottom-nav button {
@@ -2525,7 +2525,8 @@ select {
     top: -5px;
   }
   .app-shell {
-    --mobile-nav-height: calc(49px + var(--safe-bottom, env(safe-area-inset-bottom, 0px)));
+    --mobile-nav-inset: min(6px, var(--safe-bottom, env(safe-area-inset-bottom, 0px)));
+    --mobile-nav-height: calc(49px + var(--mobile-nav-inset));
     padding-bottom: var(--mobile-nav-height);
   }
   .resume-banner {

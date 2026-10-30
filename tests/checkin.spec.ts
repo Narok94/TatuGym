@@ -90,10 +90,11 @@ test('entire dashboard fits iPhone portrait screens without scrolling or overlap
     const meal = (await page.locator('.next-meal').boundingBox())!;
     const nav = (await page.locator('.bottom-nav').boundingBox())!;
     expect(nav.y - meal.y - meal.height, 'no unused space below cards').toBeLessThanOrEqual(13);
-    expect(nav.height - size.bottom, 'compact navigation without removing safe area').toBeLessThanOrEqual(54);
+    const navInset = Math.min(6, size.bottom);
+    expect(nav.height - navInset, 'compact navigation with reduced lower spacing').toBeLessThanOrEqual(54);
     const navButton = (await page.locator('.bottom-nav button').first().boundingBox())!;
     expect(navButton.height).toBeGreaterThanOrEqual(44);
-    expect(navButton.y + navButton.height, 'menu aligned to the lower safe boundary').toBeCloseTo(size.height - size.bottom, 0);
+    expect(navButton.y + navButton.height, 'menu lowered with a small bottom margin').toBeCloseTo(size.height - navInset, 0);
     const action = (await page.locator('.hero-workout .button').boundingBox())!;
     const hero = (await page.locator('.hero-workout').boundingBox())!;
     expect(action.y + action.height).toBeLessThanOrEqual(hero.y + hero.height);
@@ -150,7 +151,7 @@ test('navigation stays flush with the viewport and identical on every mobile rou
           })};
       });
       expect(metrics.y+metrics.height).toBe(size.height);
-      expect(metrics.paddingBottom).toBe(`${size.bottom}px`);
+      expect(metrics.paddingBottom).toBe(`${Math.min(6,size.bottom)}px`);
       if(baseline) expect(metrics).toEqual(baseline); else baseline=metrics;
       await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
       expect((await nav.boundingBox())!.y).toBe(metrics.y);
