@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, ChevronLeft, ChevronRight, List, Pause, Play, Undo2, X } from "lucide-react";
-import type { Session as SessionType } from "../types";
+import type { Session as SessionType, WorkoutRecord } from "../types";
 import { ExerciseImage } from "../components/ExerciseImage";
 import { Modal } from "../components/UI";
-import { completeSet, editSet, undoSet, emptyRest, nextSet, selectSet, selectExercise, unlockRestAudio } from "../sessionLogic";
+import { completeSet, editSet, undoSet, emptyRest, lastExerciseSets, nextSet, selectSet, selectExercise, unlockRestAudio } from "../sessionLogic";
 
-export default function Session({ session, update, back, finish }: {
+export default function Session({ session, history, update, back, finish }: {
   session: SessionType;
+  history: WorkoutRecord[];
   update: (fn: (s: SessionType) => SessionType) => void;
   back: () => void;
   finish: () => void;
@@ -25,12 +26,14 @@ export default function Session({ session, update, back, finish }: {
   }, []);
   const { workout, currentExercise, rest } = session;
   const exercise = workout.exercises[currentExercise];
+  const previousSets = useMemo(() => lastExerciseSets(history, workout.id, exercise.id), [history, workout.id, exercise.id]);
   const index = session.currentSet ?? nextSet(session);
+  const previous = previousSets.find(s => s.setIndex === index) ?? previousSets.at(-1);
   const key = `${exercise.id}:${index}`;
   const recorded = session.sets.find(s => s.exerciseId === exercise.id && s.setIndex === index);
   const last = session.sets.filter(s => s.exerciseId === exercise.id).at(-1);
-  const values = (recorded ? recorded : session.drafts?.[key]) ?? { load: last?.load ?? exercise.load,
-    reps: last?.reps ?? (Number(exercise.reps.match(/\d+/)?.[0]) || 1) };
+  const values = (recorded ? recorded : session.drafts?.[key]) ?? { load: last?.load ?? previous?.load ?? exercise.load,
+    reps: last?.reps ?? previous?.reps ?? (Number(exercise.reps.match(/\d+/)?.[0]) || 1) };
   const remaining = rest.endsAt ? Math.max(0, Math.ceil((rest.endsAt - now) / 1000)) : rest.remaining;
   const running = !!rest.endsAt && remaining > 0;
   const ratio = exercise.rest > 0 ? Math.min(1, remaining / exercise.rest) : 0;
@@ -82,6 +85,7 @@ export default function Session({ session, update, back, finish }: {
       <label><input aria-label="Carga da série atual em kg" type="number" inputMode="decimal" min="0" max="1000" step="0.5" disabled={index === undefined} value={emptyField === `${key}:load` || Number.isNaN(values.load) ? "" : values.load}
         onFocus={e => { if (e.currentTarget.value === "0") draft("load", ""); else e.currentTarget.select(); }}
         onBlur={() => setEmptyField(null)} onChange={e => draft("load", e.target.value)} /><span>kg</span></label>
+      {previous && <small className="execution-previous">Última execução: {previous.reps} repetições · {previous.load.toLocaleString("pt-BR")} kg</small>}
     </div>
     <div className="execution-rest">
       <div className="execution-timer">

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { SetStateAction } from "react";
 import { createInitialData } from "./data";
 import type { AppData } from "./types";
 
@@ -48,23 +49,43 @@ function readSavedData(): {
 export function useAppData() {
   const [initial] = useState(readSavedData);
   const [storageError, setStorageError] = useState(initial.error);
-  const [data, setData] = useState<AppData>(initial.data);
+  const [data, setDataState] = useState<AppData>(initial.data);
+  const latest = useRef(initial.data);
   const recovery = useRef(initial.recovery);
-  useEffect(() => {
+  const persist = useCallback((value: AppData) => {
     // Não substituir conteúdo ilegível durante a inicialização.
-    if (initial.error && data === initial.data) return;
+    if (initial.error && value === initial.data) return;
     try {
       if (recovery.current !== null) {
         localStorage.setItem(`${STORAGE_KEY}:recovery`, recovery.current);
         recovery.current = null;
       }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
       setStorageError("");
     } catch {
       setStorageError(
         "Não foi possível salvar. Verifique o espaço ou as permissões do navegador. Mantenha esta página aberta e exporte seus dados no Perfil.",
       );
     }
-  }, [data, initial]);
+  }, [initial]);
+  const setData = useCallback((action: SetStateAction<AppData>) => {
+    const next = typeof action === "function" ? action(latest.current) : action;
+    if (next === latest.current) return;
+    latest.current = next;
+    // Save before rendering or navigating, including the final input before closing.
+    persist(next);
+    setDataState(next);
+  }, [persist]);
+  useEffect(() => {
+    const flush = () => persist(latest.current);
+    const onVisibility = () => { if (document.visibilityState === "hidden") flush(); };
+    flush();
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [persist]);
   return { data, setData, storageError };
 }

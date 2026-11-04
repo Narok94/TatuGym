@@ -8,7 +8,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import type { Exercise, Meal, Session as SessionType, Workout } from "./types";
-import { isComplete, selectExercise, signalRestEnd } from "./sessionLogic";
+import { isComplete, previousDrafts, selectExercise, signalRestEnd } from "./sessionLogic";
 import { createInitialData } from "./data";
 import { localDate, uid, useAppData } from "./store";
 import { Anatomy } from "./components/Anatomy";
@@ -90,6 +90,7 @@ export default function App() {
       startedAt: new Date().toISOString(),
       currentExercise: Math.max(0, workout.exercises.findIndex(e => e.id === exerciseId)),
       sets: [],
+      drafts: previousDrafts(workout, data.history),
       rest: { remaining: 0, endsAt: null },
     };
     setData((d) => ({ ...d, activeSession: session }));
@@ -255,6 +256,7 @@ export default function App() {
           />
         ) : page === "session" && data.activeSession ? (
           <Session
+            history={data.history}
             session={data.activeSession}
             update={updateSession}
             back={() => navigate(`workout/${data.activeSession!.workout.id}`)}

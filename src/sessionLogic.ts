@@ -1,4 +1,24 @@
-import type { Session } from "./types";
+import type { Session, Workout, WorkoutRecord } from "./types";
+
+export function lastExerciseSets(history: WorkoutRecord[], workoutId: string, exerciseId: string) {
+  const records = history.filter(record => record?.workout?.id === workoutId && Array.isArray(record.sets));
+  for (const record of records.sort((a, b) => (b.finishedAt ?? b.startedAt ?? "").localeCompare(a.finishedAt ?? a.startedAt ?? ""))) {
+    const sets = record.sets.filter(s => s.exerciseId === exerciseId && Number.isFinite(s.load) && s.load >= 0 && s.load <= 1000 && Number.isInteger(s.reps) && s.reps > 0 && s.reps <= 999);
+    if (sets.length) return [...sets].sort((a, b) => a.setIndex - b.setIndex);
+  }
+  return [];
+}
+export function previousDrafts(workout: Workout, history: WorkoutRecord[]): NonNullable<Session["drafts"]> {
+  const drafts: NonNullable<Session["drafts"]> = {};
+  for (const exercise of workout.exercises) {
+    const previous = lastExerciseSets(history, workout.id, exercise.id);
+    for (let index = 0; index < exercise.sets; index++) {
+      const set = previous.find(s => s.setIndex === index) ?? previous.at(-1);
+      if (set) drafts[`${exercise.id}:${index}`] = { load: set.load, reps: set.reps };
+    }
+  }
+  return drafts;
+}
 
 export const emptyRest = () => ({ remaining: 0, endsAt: null });
 export function nextSet(session: Session, exerciseIndex = session.currentExercise) {
