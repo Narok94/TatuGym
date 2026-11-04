@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, List, Pause, Play, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, List, Pause, Play, Undo2, X } from "lucide-react";
 import type { Session as SessionType } from "../types";
 import { ExerciseImage } from "../components/ExerciseImage";
 import { Modal } from "../components/UI";
-import { completeSet, emptyRest, nextSet, selectExercise, unlockRestAudio } from "../sessionLogic";
+import { completeSet, editSet, undoSet, emptyRest, nextSet, selectSet, selectExercise, unlockRestAudio } from "../sessionLogic";
 
 export default function Session({ session, update, back, finish }: {
   session: SessionType;
@@ -25,10 +25,11 @@ export default function Session({ session, update, back, finish }: {
   }, []);
   const { workout, currentExercise, rest } = session;
   const exercise = workout.exercises[currentExercise];
-  const index = nextSet(session);
+  const index = session.currentSet ?? nextSet(session);
   const key = `${exercise.id}:${index}`;
+  const recorded = session.sets.find(s => s.exerciseId === exercise.id && s.setIndex === index);
   const last = session.sets.filter(s => s.exerciseId === exercise.id).at(-1);
-  const values = session.drafts?.[key] ?? { load: last?.load ?? exercise.load,
+  const values = (recorded ? recorded : session.drafts?.[key]) ?? { load: last?.load ?? exercise.load,
     reps: last?.reps ?? (Number(exercise.reps.match(/\d+/)?.[0]) || 1) };
   const remaining = rest.endsAt ? Math.max(0, Math.ceil((rest.endsAt - now) / 1000)) : rest.remaining;
   const running = !!rest.endsAt && remaining > 0;
@@ -39,10 +40,14 @@ export default function Session({ session, update, back, finish }: {
     setEmptyField(value === "" ? `${key}:${field}` : null);
     // Keep an empty edit local; preserve the last saved number until replaced.
     if (value === "") return;
+    if (recorded && index !== undefined) {
+      update(s => editSet(s, exercise.id, index, field === "load" ? Number(value) : values.load, field === "reps" ? Number(value) : values.reps));
+      return;
+    }
     update(s => ({ ...s, drafts: { ...s.drafts, [key]: { ...values, [field]: Number(value) } } }));
   }
   function confirm() {
-    if (index === undefined || !valid || Date.now() < lockUntil.current) return;
+    if (index === undefined || recorded || !valid || Date.now() < lockUntil.current) return;
     lockUntil.current = Date.now() + 900;
     setLocked(true);
     unlockRestAudio();
@@ -54,6 +59,16 @@ export default function Session({ session, update, back, finish }: {
       <button className="execution-icon" aria-label="Voltar" onClick={back}><ArrowLeft /></button>
       <div><h1>{exercise.name}</h1><p aria-live="polite">{index === undefined ? "Exercício concluído" : `Série ${index + 1} de ${exercise.sets}`}</p></div>
       <button className="execution-icon" aria-label="Lista de exercícios" onClick={() => setShowList(true)}><List /></button>
+      <div className="series-navigation" role="group" aria-label="Séries do exercício">
+        {Array.from({length: exercise.sets}, (_, i) => {
+          const done = session.sets.some(s => s.exerciseId === exercise.id && s.setIndex === i);
+          return <button key={i} className={done ? "is-complete" : ""} aria-current={index === i ? "step" : undefined}
+            aria-label={`Selecionar série ${i + 1}${done ? ", concluída" : ""}`}
+            onClick={() => { setEmptyField(null); update(s => selectSet(s, i)); }}>{i + 1}{done && <Check size={10} />}</button>;
+        })}
+        {recorded && index !== undefined && <button className="series-undo" aria-label={`Desfazer série ${index + 1}`}
+          onClick={() => update(s => undoSet(s, exercise.id, index))}><Undo2 size={16} /></button>}
+      </div>
     </header>
     <div className="execution-art">
       <ExerciseImage name={exercise.name} className="execution-image" />
@@ -83,7 +98,7 @@ export default function Session({ session, update, back, finish }: {
         unlockRestAudio(); setNow(Date.now());
         update(s => ({ ...s, rest: { remaining: current, endsAt: running ? null : Date.now() + current * 1000 } }));
       }}>{running || remaining === 0 ? <Pause fill="currentColor" /> : <Play fill="currentColor" />}</button>
-      <button className="execution-circle confirm" aria-label="Concluir série atual" disabled={locked || index === undefined || !valid} onClick={confirm}><Check /></button>
+      <button className="execution-circle confirm" aria-label={recorded ? "Série já concluída; alterações salvas automaticamente" : "Concluir série atual"} disabled={!!recorded || locked || index === undefined || !valid} onClick={confirm}><Check /></button>
     </footer>
     {showList && <Modal title="Exercícios do treino" onClose={() => setShowList(false)}>
       <div className="execution-list">{workout.exercises.map((e, i) => <button key={e.id} aria-current={i === currentExercise ? "step" : undefined} onClick={() => move(i)}>

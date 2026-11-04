@@ -35,6 +35,7 @@ export interface Session {
   workout: Workout;
   startedAt: string;
   currentExercise: number;
+  currentSet?: number;
   sets: SetLog[];
   drafts?: Record<string, { load: number; reps: number }>;
   rest: { remaining: number; endsAt: number | null };

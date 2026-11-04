@@ -11,15 +11,34 @@ export function isComplete(session: Session) {
 }
 export function selectExercise(session: Session, index: number): Session {
   if (index < 0 || index >= session.workout.exercises.length || index === session.currentExercise) return session;
-  return { ...session, currentExercise: index, rest: emptyRest() };
+  return { ...session, currentExercise: index, currentSet: undefined };
+}
+export function selectSet(session: Session, index: number): Session {
+  const exercise = session.workout.exercises[session.currentExercise];
+  if (!Number.isInteger(index) || index < 0 || index >= exercise.sets) return session;
+  return { ...session, currentSet: index };
+}
+export function editSet(session: Session, exerciseId: string, setIndex: number, load: number, reps: number): Session {
+  if (!Number.isFinite(load) || load < 0 || load > 1000 || !Number.isInteger(reps) || reps < 1 || reps > 999 ||
+    !session.sets.some(s => s.exerciseId === exerciseId && s.setIndex === setIndex)) return session;
+  const drafts = { ...session.drafts };
+  delete drafts[`${exerciseId}:${setIndex}`];
+  return { ...session, drafts, sets: session.sets.map(s => s.exerciseId === exerciseId && s.setIndex === setIndex ? { ...s, load, reps } : s) };
+}
+export function undoSet(session: Session, exerciseId: string, setIndex: number): Session {
+  const log = session.sets.find(s => s.exerciseId === exerciseId && s.setIndex === setIndex);
+  if (!log) return session;
+  return { ...session, sets: session.sets.filter(s => s !== log),
+    drafts: { ...session.drafts, [`${exerciseId}:${setIndex}`]: { load: log.load, reps: log.reps } } };
 }
 export function completeSet(session: Session, exerciseId: string, setIndex: number, load: number, reps: number, now = Date.now()): Session {
   const exercise = session.workout.exercises[session.currentExercise];
-  if (exercise.id !== exerciseId || nextSet(session) !== setIndex ||
+  if (exercise.id !== exerciseId || !Number.isInteger(setIndex) || setIndex < 0 || setIndex >= exercise.sets ||
+      session.sets.some(s => s.exerciseId === exerciseId && s.setIndex === setIndex) ||
       !Number.isFinite(load) || !Number.isInteger(reps) || reps < 1 || reps > 999 || load < 0 || load > 1000) return session;
   const updated: Session = { ...session, sets: [...session.sets, {
     exerciseId, setIndex, load, reps, completedAt: new Date(now).toISOString(),
-  }], rest: emptyRest() };
+  }], currentSet: undefined, rest: emptyRest() };
   if (nextSet(updated) !== undefined) {
     updated.rest = { remaining: exercise.rest, endsAt: exercise.rest > 0 ? now + exercise.rest * 1000 : null };
   } else {

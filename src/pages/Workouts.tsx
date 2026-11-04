@@ -5,15 +5,16 @@ import {
   Play,
 } from "lucide-react";
 import type { Workout } from "../types";
-import { Anatomy } from "../components/Anatomy";
 import { ExerciseImage } from "../components/ExerciseImage";
 import treinoA from "../assets/cards/treino_a.png";
 import treinoB from "../assets/cards/treino_b.png";
 import treinoC from "../assets/cards/treino_c.png";
-import startButton from "../assets/interface/botao_laranja.png";
 import { PageHeader, SectionTitle } from "../components/UI";
 
 const workoutCards: Record<string, string> = { a: treinoA, b: treinoB, c: treinoC };
+const cardDescriptions: Record<string, string> = {
+  a: "Peito, ombros e tríceps", b: "Costas, bíceps e posterior de ombro", c: "Pernas e abdômen",
+};
 
 export function Workouts({
   workouts,
@@ -44,7 +45,7 @@ export function Workouts({
           <button key={w.id} className="workout-card asset-workout-card"
             aria-label={`Abrir ${w.name}`} onClick={() => navigate(`workout/${w.id}`)}>
             {workoutCards[w.id] ? <img className="workout-card-image"
-              src={workoutCards[w.id]} alt={`${w.name}: ${w.groups.join(", ")}`} decoding="async" />
+              src={workoutCards[w.id]} alt={`${w.name}: ${cardDescriptions[w.id] ?? w.groups.join(", ")}`} decoding="async" />
               : <span>{w.name}</span>}
           </button>
         ))}
@@ -71,27 +72,14 @@ export function WorkoutDetails({
         description={workout.groups.join(" · ")}
         back={back}
       />
-      <div className="details-grid">
-        <section className="workout-overview">
-          <div className="detail-art">
-            <Anatomy group={workout.muscle} />
+      <div className="details-grid simplified-details">
+        <section className="workout-summary" aria-label="Resumo do treino">
+          <div className="workout-summary-row">
+            <span><Dumbbell size={16} />{workout.exercises.length} exercícios</span>
+            <span><Clock3 size={16} />~{workout.duration} min</span>
+            <button className="button primary" onClick={start} aria-label="Iniciar treino"><Play size={16} fill="currentColor" />Iniciar treino</button>
           </div>
-          <div className="workout-facts">
-            <div>
-              <Dumbbell size={20} />
-              <strong>{workout.exercises.length}</strong>
-              <span>exercícios</span>
-            </div>
-            <div>
-              <Clock3 size={20} />
-              <strong>~{workout.duration}</strong>
-              <span>minutos</span>
-            </div>
-          </div>
-          <button className="asset-start-button" onClick={start} aria-label="Iniciar treino">
-            <img src={startButton} alt="" width="270" height="63" />
-          </button>
-          <p className="helper">
+          <p>
             Mantenha a boa execução e respeite o descanso entre as séries.
           </p>
         </section>

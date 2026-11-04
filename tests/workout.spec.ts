@@ -1,10 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
 import { createInitialData } from '../src/data';
 import type { Session } from '../src/types';
-import { completeSet, emptyRest, isComplete, nextSet, selectExercise } from '../src/sessionLogic';
+import { completeSet, editSet, undoSet, selectSet, emptyRest, isComplete, nextSet, selectExercise } from '../src/sessionLogic';
 const key = 'meu-treino:v1:henrique-local';
-async function setup(page: Page) {
+async function setup(page: Page, rest?: number) {
   const data = createInitialData(); data.welcomed = true; data.theme = 'dark';
+  if (rest !== undefined) data.workouts[0].exercises[0].rest = rest;
   await page.addInitScript(({key, data}) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(data)); }, {key, data});
   await page.goto('/');
 }
@@ -21,13 +22,18 @@ test('dashboard, image-only cards, details and responsive layout', async ({page}
   await page.getByRole('button', {name:'Treinos',exact:true}).click();
   await expect(page.locator('.asset-workout-card')).toHaveCount(3);
   await expect(page.locator('.workout-card-content')).toHaveCount(0);
+  await expect.poll(() => page.locator('.workout-card-image').evaluateAll(images => images.every(image => {
+    const img=image as HTMLImageElement; const box=img.getBoundingClientRect();
+    return img.naturalWidth>0 && Math.abs(box.width/box.height - img.naturalWidth/img.naturalHeight)<.01;
+  }))).toBe(true);
   for (const name of ['A','B','C']) {
     await page.getByRole('button',{name:`Abrir Treino ${name}`,exact:true}).click();
     const expected = name === 'B' ? 6 : 7;
     await expect(page.locator('.exercise-card img')).toHaveCount(expected);
     await expect.poll(() => page.locator('.exercise-card img').evaluateAll(imgs => imgs.every(i => (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0))).toBe(true);
     await expect(page.getByText('Força que vem de dentro.')).toHaveCount(0);
-    await expect(page.locator('.detail-art')).toHaveCSS('height', '155px');
+    await expect(page.locator('.detail-art')).toHaveCount(0);
+    await expect(page.getByRole('button',{name:'Iniciar treino',exact:true})).toBeVisible();
     await page.getByRole('button',{name:'Voltar',exact:true}).click();
   }
   for (const width of [320,375,390,430,1024]) {
@@ -89,13 +95,11 @@ test('series edits, double taps, rest pause/resume/skip, navigation and reload',
   await page.getByRole('button',{name:'Início',exact:true}).click();
   await page.getByRole('button',{name:'Continuar treino',exact:true}).click();
   expect((await saved(page)).activeSession.sets).toHaveLength(2);
-  await page.screenshot({path:`docs/execution-${test.info().project.name}.png`});
+  await page.screenshot({path:`test-results/execution-${test.info().project.name}.png`});
 });
 
 test('rest expires with visual, audio and vibration signals; no meal notifications', async ({page}) => {
-  await setup(page);
-  await page.evaluate(key => { const d=JSON.parse(localStorage.getItem(key)!); d.workouts[0].exercises[0].rest=2; localStorage.setItem(key,JSON.stringify(d)); },key);
-  await page.reload();
+  await setup(page, 2);
   await page.evaluate(() => {
     (window as any).signals = {sound:0,vibration:0};
     Object.defineProperty(navigator,'vibrate',{value:()=>{ (window as any).signals.vibration++; return true; }, configurable:true});
@@ -164,4 +168,49 @@ test('safe top inset and execution controls stay visible on small mobile screens
     expect((await page.locator('.execution-header').boundingBox())!.y).toBeGreaterThanOrEqual(59);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
+});
+
+test('correct and undo previous sets without resetting rest or losing other sets', async ({page}) => {
+  await setup(page); const before=await saved(page); await start(page);
+  await confirm(page); await confirm(page);
+  const original=(await saved(page)).activeSession;
+  await page.getByRole('button',{name:'Selecionar série 1, concluída',exact:true}).click();
+  await expect(page.getByText('Série 1 de 4',{exact:true})).toBeVisible();
+  await page.getByRole('spinbutton',{name:'Carga da série atual em kg',exact:true}).fill('42.5');
+  await page.getByRole('spinbutton',{name:'Repetições da série atual',exact:true}).fill('11');
+  const edited=(await saved(page)).activeSession;
+  expect(edited.rest).toEqual(original.rest);
+  expect(edited.sets[0]).toMatchObject({load:42.5,reps:11,completedAt:original.sets[0].completedAt});
+  expect(edited.sets[1]).toEqual(original.sets[1]);
+  await page.getByRole('button',{name:'Desfazer série 1',exact:true}).click();
+  const undone=(await saved(page)).activeSession;
+  expect(undone.sets).toEqual([original.sets[1]]); expect(undone.rest).toEqual(original.rest);
+  await page.reload();
+  await expect(page.getByText('Série 1 de 4',{exact:true})).toBeVisible();
+  await expect(page.getByRole('spinbutton',{name:'Carga da série atual em kg',exact:true})).toHaveValue('42.5');
+  await page.getByRole('button',{name:'Selecionar série 4',exact:true}).click(); await confirm(page);
+  const jumped=(await saved(page)).activeSession;
+  expect(jumped.sets.map((s:any)=>s.setIndex)).toEqual([1,3]);
+  await page.getByRole('button',{name:'Lista de exercícios',exact:true}).click();
+  await page.getByRole('button',{name:/^Crucifixo/}).click();
+  expect((await saved(page)).activeSession.rest).toEqual(jumped.rest);
+  const after=await saved(page);
+  expect(after.workouts).toEqual(before.workouts); expect(after.history).toEqual(before.history);
+  expect(after.meals).toEqual(before.meals); expect(after.user).toEqual(before.user);
+});
+
+test('set corrections preserve timestamps and rest and reject invalid inputs', () => {
+  const workout=createInitialData().workouts[0];
+  const initial:Session={id:'edits',workout,startedAt:'2026-01-01',currentExercise:0,sets:[],rest:emptyRest()};
+  const recorded=completeSet(initial,workout.exercises[0].id,0,40,10,1000);
+  const selected=selectSet(recorded,0);
+  const corrected=editSet(selected,workout.exercises[0].id,0,45,12);
+  expect(corrected.rest).toEqual(recorded.rest);
+  expect(corrected.sets[0].completedAt).toBe(recorded.sets[0].completedAt);
+  expect(editSet(corrected,workout.exercises[0].id,0,NaN,10)).toBe(corrected);
+  expect(selectSet(corrected,99)).toBe(corrected);
+  expect(completeSet(corrected,workout.exercises[0].id,0,45,12)).toBe(corrected);
+  const undone=undoSet(corrected,workout.exercises[0].id,0);
+  expect(undone.rest).toEqual(recorded.rest); expect(undone.sets).toHaveLength(0);
+  expect(undone.drafts?.[`${workout.exercises[0].id}:0`]).toEqual({load:45,reps:12});
 });

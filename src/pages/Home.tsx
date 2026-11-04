@@ -74,7 +74,6 @@ export default function Home({
               </span>
               <p className="hero-kicker">Hoje é dia de superar.</p>
               <h2>{workout.name}</h2>
-              <p className="hero-groups">{workout.groups.join(" · ")}</p>
               <div className="hero-meta">
                 <span>
                   <Dumbbell size={14} />
@@ -83,6 +82,10 @@ export default function Home({
                 <span>
                   <Clock3 size={14} />~{workout.duration} min
                 </span>
+              </div>
+              <div className="hero-muscles" aria-label="Músculos trabalhados">
+                <span className="hero-muscles-caption">MÚSCULOS TRABALHADOS</span>
+                <ul>{workout.groups.map(group => <li key={group}>{group}</li>)}</ul>
               </div>
               <button className="button primary" onClick={() => start(workout)}>
                 <Play size={17} fill="currentColor" />
