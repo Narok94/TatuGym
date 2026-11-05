@@ -6,7 +6,10 @@ const key = 'meu-treino:v1:henrique-local';
 async function setup(page: Page, rest?: number) {
   const data = createInitialData(); data.welcomed = true; data.theme = 'dark';
   if (rest !== undefined) data.workouts[0].exercises[0].rest = rest;
-  await page.addInitScript(({key, data}) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(data)); }, {key, data});
+  await page.addInitScript(({key, data}) => {
+    if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(data));
+    sessionStorage.setItem('tatugym:dev:teacher-session:v1', JSON.stringify({role:'ALUNO',userId:data.user.id,login:'henrique'}));
+  }, {key, data});
   await page.goto('/');
 }
 async function saved(page: Page) { return page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key); }

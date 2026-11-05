@@ -1,10 +1,10 @@
 # Meu Treino
 
-PWA pessoal de academia para Henrique, com React, TypeScript, Vite, Tailwind CSS e ícones Lucide. O ambiente atual do aluno permanece local, sem login, backend ou banco de dados. Há um ambiente de professor exclusivamente em desenvolvimento, com login simulado e dados locais separados.
+PWA pessoal de academia para Henrique, com React, TypeScript, Vite, Tailwind CSS e ícones Lucide. Os dados permanecem locais, sem backend ou banco de dados. Em desenvolvimento, o login FORJA simulado identifica aluno e professor; em produção, o aplicativo do aluno mantém o acesso existente, sem autenticação simulada.
 
 ## Ambiente do professor (somente desenvolvimento)
 
-Execute `npm run dev`, abra `/#professor` e use **professor / 123**. **professor2 / 123** permite testar outro professor. Dashboard, alunos, treinos, avaliações, evolução, relatórios, biblioteca e configurações usam armazenamento local provisório. Esse acesso não existe no build de produção. Consulte [as etapas, arquivos e instruções de teste](docs/professor-desenvolvimento.md).
+Execute `npm run dev` e abra `/#login`. Use **henrique / 9860** para o aplicativo atual do aluno, preservando seus registros, ou **professor / 123** para o painel do professor. **professor2 / 123** permite testar outro professor. O login usa a opção 3 aprovada: fundo de pesos, logo FORJA e painel preto com borda laranja. A sessão permanece na aba ao atualizar; sair retorna ao login. Dashboard, alunos, treinos, avaliações, evolução, relatórios, biblioteca e configurações do professor usam armazenamento local provisório. O acesso simulado e suas credenciais não existem no build de produção. Recuperação de senha, autenticação e permissões reais dependem do backend. Consulte [as etapas, arquivos e instruções de teste](docs/professor-desenvolvimento.md).
 
 ## Executar
 

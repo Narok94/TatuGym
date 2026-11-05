@@ -4,9 +4,9 @@ import { createInitialData } from '../src/data';
 const studentKey='meu-treino:v1:henrique-local';
 async function login(page:Page, user='professor') {
   await page.goto('/#professor');
-  await page.getByLabel('Usuário',{exact:true}).fill(user);
+  await page.getByLabel('Usuário ou e-mail',{exact:true}).fill(user);
   await page.getByLabel('Senha',{exact:true}).fill('123');
-  await page.getByRole('button',{name:'Entrar como professor',exact:true}).click();
+  await page.getByRole('button',{name:'Entrar',exact:true}).click();
   await expect(page.getByRole('heading',{name:/Olá,/})).toBeVisible();
 }
 async function navigate(page:Page,label:string) {
@@ -24,17 +24,20 @@ test('development teacher login, dashboard, logout and student data preservation
   const data=createInitialData();data.welcomed=true;
   await page.addInitScript(({key,data})=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(data));},{key:studentKey,data});
   await page.goto('/#professor');
-  await page.getByLabel('Usuário',{exact:true}).fill('professor');await page.getByLabel('Senha',{exact:true}).fill('wrong');
-  await page.getByRole('button',{name:'Entrar como professor',exact:true}).click();await expect(page.getByRole('alert')).toContainText('inválidos');
-  await page.getByLabel('Senha',{exact:true}).fill('123');await page.getByRole('button',{name:'Entrar como professor',exact:true}).click();
+  await page.getByLabel('Usuário ou e-mail',{exact:true}).fill('professor');await page.getByLabel('Senha',{exact:true}).fill('wrong');
+  await page.getByRole('button',{name:'Entrar',exact:true}).click();await expect(page.getByRole('alert')).toContainText('inválidos');
+  await page.getByLabel('Senha',{exact:true}).fill('123');await page.getByRole('button',{name:'Entrar',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Olá, Professor TatuGym.'})).toBeVisible();
   await expect(page.locator('.teacher-stat strong')).toHaveText(['0','0','0','0']);
   await page.reload();await expect(page.getByRole('heading',{name:'Olá, Professor TatuGym.'})).toBeVisible();
   expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)!),studentKey)).toEqual(data);
   await page.getByRole('button',{name:'Abrir menu',exact:true}).click();
   await page.getByRole('button',{name:'Ambiente do aluno',exact:true}).click();
+  await page.getByLabel('Usuário ou e-mail',{exact:true}).fill('henrique');await page.getByLabel('Senha',{exact:true}).fill('9860');
+  await page.getByRole('button',{name:'Entrar',exact:true}).click();
   await expect(page.getByRole('button',{name:'Iniciar treino',exact:true})).toBeVisible();
-  await page.goto('/#professor');await expect(page.getByRole('button',{name:'Entrar como professor',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Sair da conta',exact:true}).click();
+  await page.goto('/#professor');await expect(page.getByRole('button',{name:'Entrar',exact:true})).toBeVisible();
 });
 
 test('development demo dashboard derives its indicators from local records',async({page})=>{
@@ -136,5 +139,5 @@ test('teacher desktop and mobile layouts have usable navigation without page ove
     }
     await navigate(page,'Dashboard');await page.screenshot({path:`test-results/teacher-dashboard-${size.width}-${test.info().project.name}.png`,fullPage:true});
   }
-  await page.getByRole('button',{name:'Abrir menu',exact:true}).click();await page.getByRole('button',{name:'Sair',exact:true}).click();await expect(page.getByRole('button',{name:'Entrar como professor',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Abrir menu',exact:true}).click();await page.getByRole('button',{name:'Sair',exact:true}).click();await expect(page.getByRole('button',{name:'Entrar',exact:true})).toBeVisible();
 });

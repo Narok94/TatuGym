@@ -9,6 +9,7 @@ test.beforeEach(async ({ page }) => {
   const data = createInitialData(); data.welcomed = true; data.theme = 'dark';
   await page.clock.install({ time: new Date('2026-10-29T12:00:00-03:00') });
   await page.addInitScript(({ key, checkinsKey, data }) => {
+    sessionStorage.setItem('tatugym:dev:teacher-session:v1', JSON.stringify({role:'ALUNO',userId:data.user.id,login:'henrique'}));
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(data));
     if (!localStorage.getItem(checkinsKey)) localStorage.setItem(checkinsKey, JSON.stringify({'2026-10-18':true}));
   }, { key, checkinsKey, data });

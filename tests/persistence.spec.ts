@@ -17,7 +17,10 @@ function fixture() {
   data.history=[newer,older]; return data;
 }
 async function seed(page:Page,data=fixture()) {
-  await page.addInitScript(({key,data})=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(data));},{key,data});
+  await page.addInitScript(({key,data})=>{
+    if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(data));
+    sessionStorage.setItem('tatugym:dev:teacher-session:v1',JSON.stringify({role:'ALUNO',userId:data.user.id,login:'henrique'}));
+  },{key,data});
   await page.goto('/#workout/a');
 }
 const saved=(page:Page)=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)!),key);
@@ -44,7 +47,9 @@ test('last execution fills each series and survives navigation and closing the p
   await page.getByRole('button',{name:'Continuar treino',exact:true}).click();
   await load(page).fill('55');
   await page.close();
-  const reopened=await context.newPage();await reopened.goto('/#session');
+  const reopened=await context.newPage();
+  await reopened.addInitScript(userId=>sessionStorage.setItem('tatugym:dev:teacher-session:v1',JSON.stringify({role:'ALUNO',userId,login:'henrique'})),data.user.id);
+  await reopened.goto('/#session');
   await expect(load(reopened)).toHaveValue('55');await expect(reps(reopened)).toHaveValue('11');
   await reopened.getByRole('button',{name:'Concluir série atual',exact:true}).click();
   await expect.poll(async()=>(await saved(reopened)).activeSession.sets[0]?.load).toBe(55);

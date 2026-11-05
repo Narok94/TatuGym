@@ -2,16 +2,19 @@
 
 ## Acesso e limites desta versão
 
-Execute `npm run dev` e abra `http://localhost:5173/#professor` (use a porta exibida pelo Vite).
+Execute `npm run dev` e abra `http://localhost:5173/#login` (use a porta exibida pelo Vite). O login FORJA segue a opção 3 aprovada, usando os assets existentes. O perfil é identificado pelas credenciais, sem seleção manual.
 
 | Usuário | Senha | Perfil |
 | --- | --- | --- |
+| henrique | 9860 | ALUNO, dados atuais preservados |
 | professor | 123 | PROFESSOR, espaço local 1 |
 | professor2 | 123 | PROFESSOR, espaço local 2 |
 
 O segundo usuário permite verificar o isolamento dos registros. Credenciais e sessão são **simuladas**, sem servidor, e não representam autenticação segura. Os módulos do professor são carregados apenas quando `import.meta.env.DEV` é verdadeiro. `npm run build` e `npm run preview` não disponibilizam esse acesso nem incluem suas credenciais ou interface.
 
-O aplicativo do aluno continua sendo o mesmo `App.tsx`, com seu armazenamento preservado. No menu do professor, **Ambiente do aluno** encerra a sessão de teste e retorna ao ambiente existente. Não foi implementado login real para os alunos cadastrados: as contas locais possuem identificador, perfil ALUNO e professor responsável, mas convites, credenciais e associação ao portal autenticado dependem da futura integração.
+O aplicativo do aluno continua sendo o mesmo `App.tsx`, com seu armazenamento preservado. `henrique/9860` utiliza diretamente a identidade e a chave existentes, sem copiar, migrar ou apagar dados. **Sair da conta**, **Sair** e **Ambiente do aluno** encerram a sessão e voltam ao login; para trocar de perfil, informe as credenciais correspondentes. A sessão dura na aba e sobrevive à atualização. Rotas diretas exigem a sessão e o perfil correspondente nesta simulação. Não foi implementado login real para os alunos cadastrados pelo professor: as contas locais possuem identificador, perfil ALUNO e professor responsável, mas convites, credenciais e associação ao portal autenticado dependem da futura integração.
+
+O link **Esqueceu sua senha?** informa que a recuperação depende do backend, sem simular envio. O login permite mostrar/ocultar senha e informa credenciais inválidas. A tela e as credenciais de teste ficam fora do build de produção; o aplicativo do aluno em produção mantém o comportamento existente até a implementação da autenticação real.
 
 Não foram encontrados protótipos específicos do professor neste checkout. A interface foi construída com a identidade e as referências disponíveis: papel de parede, paleta, componentes, ilustração anatômica e padrões do aplicativo. A comparação com protótipos específicos permanece dependente do fornecimento dessas referências.
 
@@ -50,8 +53,7 @@ Permanecem pendentes: autenticação e autorização no servidor, cadastro e cre
 ## Validação
 
 ```sh
-npm test -- --grep teacher
-npm test
+npx playwright test tests/login.spec.ts
 npm run build
 npm run verify:teacher-production
 ```

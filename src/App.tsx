@@ -4,6 +4,7 @@ import {
   Check,
   Dumbbell,
   Flame,
+  LogOut,
   ShieldCheck,
   WifiOff,
 } from "lucide-react";
@@ -26,7 +27,7 @@ interface InstallPrompt extends Event {
   userChoice: Promise<{ outcome: string }>;
 }
 const readPage = () => location.hash.slice(1) || "home";
-export default function App() {
+export default function App({ onLogout }: { onLogout?: () => void } = {}) {
   const { data, setData, storageError } = useAppData();
   const [page, setPage] = useState(readPage);
   const [offline, setOffline] = useState(!navigator.onLine);
@@ -152,6 +153,7 @@ export default function App() {
       <main className="welcome">
         <div className="welcome-top">
           <Brand />
+          {onLogout && <button className="icon-button" aria-label="Sair da conta" onClick={onLogout}><LogOut size={20} /></button>}
           <span className="welcome-tag">SUA EVOLUÇÃO COMEÇA AQUI</span>
         </div>
         <div className="welcome-layout">
@@ -207,7 +209,7 @@ export default function App() {
     );
   return (
     <div className={`app-shell ${page === "home" ? "dashboard-home" : ""} ${page === "session" && data.activeSession ? "executing" : ""}`}>
-      <header className="topbar">
+      <header className={`topbar${onLogout ? " with-session-controls" : ""}`}>
         <button
           className="brand-button"
           onClick={() => navigate("home")}
@@ -227,6 +229,7 @@ export default function App() {
           >
             {data.user.name.trim().charAt(0).toUpperCase()}
           </button>
+          {onLogout && <button className="icon-button student-logout" aria-label="Sair da conta" title="Sair" onClick={onLogout}><LogOut size={20} /></button>}
         </div>
       </header>
       {offline && (
