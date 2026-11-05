@@ -3433,3 +3433,5 @@ img.anatomy {
   .dashboard-home .next-meal { padding: 9px 12px; }
   .dashboard-home .next-meal h3 { font-size: 16px; }
 }
+
+button.execution-image { padding: 0; }

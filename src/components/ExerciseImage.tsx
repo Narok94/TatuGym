@@ -1,28 +1,70 @@
+import { useEffect, useState } from "react";
 import { Dumbbell } from "lucide-react";
-import supino from "../assets/exercicios/execucao/supino_referencia.webp";
-import desenvolvimento from "../assets/exercicios/execucao/desenvolvimento_exec.webp";
-import elevacao from "../assets/exercicios/execucao/elevacao_lateral_exec.webp";
-import triceps from "../assets/exercicios/execucao/triceps_polia_exec.webp";
-import puxada from "../assets/exercicios/execucao/puxada_alta_exec.webp";
-import rosca from "../assets/exercicios/execucao/rosca_direta_exec.webp";
-import legPress from "../assets/exercicios/execucao/leg_press_exec.webp";
-import extensora from "../assets/exercicios/execucao/cadeira_extensora_exec.webp";
-import flexora from "../assets/exercicios/execucao/mesa_flexora_exec.webp";
+import supinoInicial from "../assets/Treino_A/supino_reto_inicial.png";
+import supinoFinal from "../assets/Treino_A/supino_reto_final.png";
+import desenvolvimentoInicial from "../assets/Treino_A/desenvolvimento_inicial.png";
+import desenvolvimentoFinal from "../assets/Treino_A/desenvolvimento_final.png";
+import elevacaoInicial from "../assets/Treino_A/elevacao_lateral_inicial.png";
+import elevacaoFinal from "../assets/Treino_A/elevacao_lateral_final.png";
+import tricepsInicial from "../assets/Treino_A/triceps_polia_inicial.png";
+import tricepsFinal from "../assets/Treino_A/triceps_polia_final.png";
+import puxadaInicial from "../assets/Treino_B/puxada_frontal_inicial.png";
+import puxadaFinal from "../assets/Treino_B/puxada_frontal_final.png";
+import roscaInicial from "../assets/Treino_B/rosca_direta_inicial.png";
+import roscaFinal from "../assets/Treino_B/rosca_direta_final.png";
+import legPressInicial from "../assets/Treino_C/leg_press_inicial.png";
+import legPressFinal from "../assets/Treino_C/leg_press_final.png";
+import extensoraInicial from "../assets/Treino_C/cadeira_extensora_inicial.png";
+import extensoraFinal from "../assets/Treino_C/cadeira_extensora_final.png";
+import flexoraInicial from "../assets/Treino_C/mesa_flexora_inicial.png";
+import flexoraFinal from "../assets/Treino_C/mesa_flexora_final.png";
 
-import supino_inclinado from "../assets/exercicios/execucao/supino_inclinado.webp";
-import crucifixo from "../assets/exercicios/execucao/crucifixo.webp";
-import triceps_frances from "../assets/exercicios/execucao/triceps_frances.webp";
-import remada_baixa from "../assets/exercicios/execucao/remada_baixa.webp";
-import remada_unilateral from "../assets/exercicios/execucao/remada_unilateral.webp";
-import pulldown from "../assets/exercicios/execucao/pulldown.webp";
-import agachamento from "../assets/exercicios/execucao/agachamento.webp";
-import elevacao_pelvica from "../assets/exercicios/execucao/elevacao_pelvica.webp";
-import panturrilha_em_pe from "../assets/exercicios/execucao/panturrilha_em_pe.webp";
-import abdominal_solo from "../assets/exercicios/execucao/abdominal_solo.webp";
-import martelo from "../assets/exercicios/execucao/rosca_martelo_exec.webp";
+import supino_inclinadoInicial from "../assets/Treino_A/supino_inclinado_inicial.png";
+import supino_inclinadoFinal from "../assets/Treino_A/supino_inclinado_final.png";
+import crucifixoInicial from "../assets/Treino_A/crucifixo_inicial.png";
+import crucifixoFinal from "../assets/Treino_A/crucifixo_final.png";
+import triceps_francesInicial from "../assets/Treino_A/triceps_frances_inicial.png";
+import triceps_francesFinal from "../assets/Treino_A/triceps_frances_final.png";
+import remada_baixaInicial from "../assets/Treino_B/remada_baixa_inicial.png";
+import remada_baixaFinal from "../assets/Treino_B/remada_baixa_final.png";
+import remada_unilateralInicial from "../assets/Treino_B/remada_unilateral_inicial.png";
+import remada_unilateralFinal from "../assets/Treino_B/remada_unilateral_final.png";
+import pulldownInicial from "../assets/Treino_B/pulldown_inicial.png";
+import pulldownFinal from "../assets/Treino_B/pulldown_final.png";
+import agachamentoInicial from "../assets/Treino_C/agachamento_livre_inicial.png";
+import agachamentoFinal from "../assets/Treino_C/agachamento_livre_final.png";
+import elevacao_pelvicaInicial from "../assets/Treino_C/elevacao_pelvica_inicial.png";
+import elevacao_pelvicaFinal from "../assets/Treino_C/elevacao_pelvica_final.png";
+import panturrilha_em_peInicial from "../assets/Treino_C/panturrilha_em_pe_inicial.png";
+import panturrilha_em_peFinal from "../assets/Treino_C/panturrilha_em_pe_final.png";
+import abdominal_soloInicial from "../assets/Treino_C/abdominal_solo_inicial.png";
+import abdominal_soloFinal from "../assets/Treino_C/abdominal_solo_final.png";
+import marteloInicial from "../assets/Treino_B/rosca_martelo_inicial.png";
+import marteloFinal from "../assets/Treino_B/rosca_martelo_final.png";
+
+const supino = [supinoInicial, supinoFinal] as const;
+const desenvolvimento = [desenvolvimentoInicial, desenvolvimentoFinal] as const;
+const elevacao = [elevacaoInicial, elevacaoFinal] as const;
+const triceps = [tricepsInicial, tricepsFinal] as const;
+const puxada = [puxadaInicial, puxadaFinal] as const;
+const rosca = [roscaInicial, roscaFinal] as const;
+const legPress = [legPressInicial, legPressFinal] as const;
+const extensora = [extensoraInicial, extensoraFinal] as const;
+const flexora = [flexoraInicial, flexoraFinal] as const;
+const supino_inclinado = [supino_inclinadoInicial, supino_inclinadoFinal] as const;
+const crucifixo = [crucifixoInicial, crucifixoFinal] as const;
+const triceps_frances = [triceps_francesInicial, triceps_francesFinal] as const;
+const remada_baixa = [remada_baixaInicial, remada_baixaFinal] as const;
+const remada_unilateral = [remada_unilateralInicial, remada_unilateralFinal] as const;
+const pulldown = [pulldownInicial, pulldownFinal] as const;
+const agachamento = [agachamentoInicial, agachamentoFinal] as const;
+const elevacao_pelvica = [elevacao_pelvicaInicial, elevacao_pelvicaFinal] as const;
+const panturrilha_em_pe = [panturrilha_em_peInicial, panturrilha_em_peFinal] as const;
+const abdominal_solo = [abdominal_soloInicial, abdominal_soloFinal] as const;
+const martelo = [marteloInicial, marteloFinal] as const;
 
 // Match the current name, so a renamed exercise never keeps an unrelated image.
-const images: Record<string, string> = {
+const images: Record<string, readonly [string, string]> = {
   "supino inclinado": supino_inclinado,
   "crucifixo": crucifixo,
   "triceps frances": triceps_frances,
@@ -49,14 +91,26 @@ const images: Record<string, string> = {
   "mesa flexora": flexora,
 };
 
-export function ExerciseImage({ name, className = "" }: {
+export function ExerciseImage({ name, className = "", animate = false }: {
   name: string;
   className?: string;
+  animate?: boolean;
 }) {
   const key = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase().trim().replace(/\s+/g, " ");
-  const src = images[key];
-  return <span className={`exercise-visual ${className}`} aria-hidden="true">
-    {src ? <img src={src} alt="" decoding="async" /> : <Dumbbell size={23} />}
-  </span>;
+  const frames = images[key];
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    setFrame(0);
+    if (!animate || !frames) return;
+    frames.forEach(src => { const image = new Image(); image.src = src; });
+    const timer = window.setInterval(() => setFrame(value => 1 - value), 2000);
+    return () => window.clearInterval(timer);
+  }, [key, animate, frames]);
+  const visual = frames ? <img src={frames[animate ? frame : 0]} alt="" decoding="async" /> : <Dumbbell size={23} />;
+  if (animate && frames) return <button type="button" className={`exercise-visual ${className}`}
+    aria-label={`Alternar posição do exercício ${name}`} onClick={() => setFrame(value => 1 - value)}>
+    {visual}
+  </button>;
+  return <span className={`exercise-visual ${className}`} aria-hidden="true">{visual}</span>;
 }
