@@ -3203,6 +3203,7 @@ img.anatomy {
 }
 .exercise-visual {
   display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
   min-width: 0;
   min-height: 0;
@@ -3218,9 +3219,10 @@ img.anatomy {
   object-fit: contain;
   object-position: center;
 }
+.exercise-card { padding-block: 17.5px; }
 .exercise-visual.exercise-symbol {
   width: clamp(70px, 9vw, 100px);
-  height: 80px;
+  height: 92px;
   flex-shrink: 0;
   background: transparent;
 }
@@ -3255,11 +3257,11 @@ img.anatomy {
   }
   .exercise-card {
     gap: 10px;
-    padding: 12px;
+    padding: 14px 12px;
   }
   .exercise-visual.exercise-symbol {
     width: 72px;
-    height: 72px;
+    height: 83px;
   }
   .exercise-info {
     min-width: 0;
@@ -3343,7 +3345,7 @@ img.anatomy {
   .execution-rest { margin: 4px 0; }
   .execution-circle { width: 58px; }
 }
-.execution-art .execution-image { display: grid; min-width: 0; min-height: 0; overflow: hidden; padding-inline: 48px; }
+.execution-art .execution-image { display: grid; min-width: 0; min-height: 0; overflow: hidden; padding: 0 48px 32px; position: relative; }
 /* Keep small source images at their native size; contain scales them down when needed. */
 @media (max-width: 760px) {
   .execution-art { height: clamp(140px, 27dvh, 260px); }
@@ -3440,4 +3442,7 @@ img.anatomy {
   .dashboard-home .next-meal h3 { font-size: 16px; }
 }
 
-button.execution-image { padding-block: 0; }
+/* Separate position controls from navigation between exercises. */
+.exercise-frame-toggle { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; width: 100%; height: 100%; min-width: 0; min-height: 0; padding: 0; }
+.exercise-frame-controls { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+.exercise-frame-controls button { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #20292f; color: #d5dade; }

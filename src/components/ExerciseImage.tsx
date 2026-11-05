@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dumbbell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Dumbbell } from "lucide-react";
 import supinoInicial from "../assets/Treino_A/supino_reto_inicial.png";
 import supinoFinal from "../assets/Treino_A/supino_reto_final.png";
 import desenvolvimentoInicial from "../assets/Treino_A/desenvolvimento_inicial.png";
@@ -108,9 +108,18 @@ export function ExerciseImage({ name, className = "", animate = false }: {
     return () => window.clearInterval(timer);
   }, [key, animate, frames]);
   const visual = frames ? <img src={frames[animate ? frame : 0]} alt="" decoding="async" /> : <Dumbbell size={23} />;
-  if (animate && frames) return <button type="button" className={`exercise-visual ${className}`}
-    aria-label={`Alternar posição do exercício ${name}`} onClick={() => setFrame(value => 1 - value)}>
-    {visual}
-  </button>;
+  if (animate && frames) return <span className={`exercise-visual ${className}`}>
+    <button type="button" className="exercise-frame-toggle"
+      aria-label={`Alternar posição do exercício ${name}`} onClick={() => setFrame(value => 1 - value)}
+      onKeyDown={event => {
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault(); setFrame(value => 1 - value);
+        }
+      }}>{visual}</button>
+    <span className="exercise-frame-controls" role="group" aria-label="Posições do movimento">
+      <button type="button" aria-label="Posição anterior do movimento" onClick={() => setFrame(value => 1 - value)}><ChevronLeft size={18} /></button>
+      <button type="button" aria-label="Próxima posição do movimento" onClick={() => setFrame(value => 1 - value)}><ChevronRight size={18} /></button>
+    </span>
+  </span>;
   return <span className={`exercise-visual ${className}`} aria-hidden="true">{visual}</span>;
 }
