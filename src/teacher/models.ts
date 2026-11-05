@@ -1,0 +1,49 @@
+export interface TeacherIdentity { id: string; login: string; name: string; email: string }
+export interface TeacherSession { role: "PROFESSOR"; teacherId: string }
+export interface TeacherProfile { name: string; email: string; phone: string; specialty: string }
+export interface Student {
+  id: string; teacherId: string; role: "ALUNO"; name: string; email: string; phone: string;
+  birthDate: string; goal: string; status: "ATIVO" | "INATIVO"; notes: string; createdAt: string;
+}
+export interface PlanExercise {
+  id: string; name: string; muscleGroup: string; sets: number; reps: string; load: number;
+  rest: number; instructions: string; libraryId?: string;
+}
+export interface TrainingPlan {
+  id: string; teacherId: string; studentId: string; name: string; description: string;
+  status: "RASCUNHO" | "ATIVO"; duration: number; exercises: PlanExercise[]; updatedAt: string;
+}
+export interface Assessment {
+  id: string; teacherId: string; studentId: string; date: string; weight: number; height: number;
+  waist: number | null; hip: number | null; bodyFat: number | null; notes: string;
+}
+export interface LibraryExercise {
+  id: string; teacherId: string; name: string; muscleGroup: string; equipment: string;
+  instructions: string; imageUrl: string;
+}
+export interface Activity { id: string; teacherId: string; title: string; at: string }
+export interface TeacherSnapshot {
+  profile: TeacherProfile; students: Student[]; plans: TrainingPlan[];
+  assessments: Assessment[]; library: LibraryExercise[]; activities: Activity[];
+}
+export interface TeacherDatabase {
+  version: 1; profiles: Record<string, TeacherProfile>; students: Student[]; plans: TrainingPlan[];
+  assessments: Assessment[]; library: LibraryExercise[]; activities: Activity[];
+}
+export type StudentInput = Omit<Student, "id" | "teacherId" | "role" | "createdAt">;
+export type PlanInput = Omit<TrainingPlan, "id" | "teacherId" | "updatedAt">;
+export type AssessmentInput = Omit<Assessment, "id" | "teacherId">;
+export type LibraryInput = Omit<LibraryExercise, "id" | "teacherId">;
+export interface TeacherRepository {
+  read(): TeacherSnapshot;
+  saveStudent(input: StudentInput, id?: string): string;
+  deleteStudent(id: string): void;
+  savePlan(input: PlanInput, id?: string): string;
+  deletePlan(id: string): void;
+  saveAssessment(input: AssessmentInput, id?: string): string;
+  deleteAssessment(id: string): void;
+  saveExercise(input: LibraryInput, id?: string): string;
+  deleteExercise(id: string): void;
+  saveProfile(input: TeacherProfile): void;
+  loadDemo(): void;
+}

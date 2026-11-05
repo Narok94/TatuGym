@@ -1,6 +1,10 @@
 # Meu Treino
 
-PWA pessoal de academia para Henrique, com React, TypeScript, Vite, Tailwind CSS e ícones Lucide. Sem login, backend ou banco de dados.
+PWA pessoal de academia para Henrique, com React, TypeScript, Vite, Tailwind CSS e ícones Lucide. O ambiente atual do aluno permanece local, sem login, backend ou banco de dados. Há um ambiente de professor exclusivamente em desenvolvimento, com login simulado e dados locais separados.
+
+## Ambiente do professor (somente desenvolvimento)
+
+Execute `npm run dev`, abra `/#professor` e use **professor / 123**. **professor2 / 123** permite testar outro professor. Dashboard, alunos, treinos, avaliações, evolução, relatórios, biblioteca e configurações usam armazenamento local provisório. Esse acesso não existe no build de produção. Consulte [as etapas, arquivos e instruções de teste](docs/professor-desenvolvimento.md).
 
 ## Executar
 

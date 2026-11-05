@@ -5,8 +5,9 @@ import App from "./App";
 import "./styles.css";
 
 registerSW({ immediate: true });
+const Root = import.meta.env.DEV ? React.lazy(() => import("./teacher/DevelopmentRoot")) : App;
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <React.Suspense fallback={<div role="status">Carregando…</div>}><Root /></React.Suspense>
   </React.StrictMode>,
 );
