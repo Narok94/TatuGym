@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { createInitialData } from '../src/data';
 
-for (const width of [390, 1440]) {
+for (const width of [320, 390, 1440]) {
   for (const workout of createInitialData().workouts) {
     test(`ABC images ${workout.id} at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
@@ -21,6 +21,15 @@ for (const width of [390, 1440]) {
         const img = image as HTMLImageElement;
         return img.naturalWidth > 0 && img.src.endsWith('_inicial.png');
       }))).toBe(true);
+      await expect.poll(() => cards.evaluateAll(images => images.every(image => {
+        const img = image as HTMLImageElement, box = img.getBoundingClientRect();
+        const container = img.parentElement!.getBoundingClientRect();
+        return getComputedStyle(img).objectFit === 'contain' && box.width <= img.naturalWidth + 1 &&
+          box.height <= img.naturalHeight + 1 && box.left >= container.left - 1 && box.right <= container.right + 1 &&
+          box.top >= container.top - 1 && box.bottom <= container.bottom + 1 &&
+          Math.abs(box.width / box.height - img.naturalWidth / img.naturalHeight) < .02;
+      }))).toBe(true);
+      await page.screenshot({ path: `test-results/abc-${workout.id}-${width}-list.png`, fullPage: true });
       const initialSources = await cards.evaluateAll(images => images.map(image => (image as HTMLImageElement).src));
       await page.getByRole('button', { name: `Executar ${workout.exercises[0].name}`, exact: true }).click();
       for (const [index, exercise] of workout.exercises.entries()) {
@@ -28,11 +37,21 @@ for (const width of [390, 1440]) {
         await expect(page.getByRole('heading', { name: exercise.name, exact: true })).toBeVisible();
         await expect(image).toHaveAttribute('src', /_inicial\.png$/);
         expect(await image.evaluate((img: HTMLImageElement) => img.src)).toBe(initialSources[index]);
+        await expect.poll(() => image.evaluate((img: HTMLImageElement) => {
+          const box = img.getBoundingClientRect(), container = img.parentElement!.getBoundingClientRect();
+          return getComputedStyle(img).objectFit === 'contain' && box.width <= img.naturalWidth + 1 &&
+            box.height <= img.naturalHeight + 1 && box.left >= container.left + 47 && box.right <= container.right - 47 &&
+            box.top >= container.top - 1 && box.bottom <= container.bottom + 1 &&
+            Math.abs(box.width / box.height - img.naturalWidth / img.naturalHeight) < .02;
+        })).toBe(true);
+        await page.locator('.execution-art').screenshot({ path: `test-results/abc-${exercise.id}-${width}-initial.png` });
+        if (index === 0) await page.screenshot({ path: `test-results/abc-${workout.id}-${width}-execution.png`, fullPage: true });
         await page.clock.runFor(1999);
         await expect(image).toHaveAttribute('src', /_inicial\.png$/);
         await page.clock.runFor(1);
         await expect(image).toHaveAttribute('src', /_final\.png$/);
         await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth > 0)).toBe(true);
+        await page.locator('.execution-art').screenshot({ path: `test-results/abc-${exercise.id}-${width}-final.png` });
         await page.clock.runFor(2000);
         await expect(image).toHaveAttribute('src', /_inicial\.png$/);
         const toggle = page.getByRole('button', { name: `Alternar posição do exercício ${exercise.name}`, exact: true });
