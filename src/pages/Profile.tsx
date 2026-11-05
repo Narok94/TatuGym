@@ -4,6 +4,7 @@ import {
   Check,
   Download,
   HardDrive,
+  LogOut,
   Monitor,
   Moon,
   ShieldCheck,
@@ -21,12 +22,14 @@ export default function Profile({
   navigate,
   reset,
   install,
+  onLogout,
 }: {
   data: AppData;
   setTheme: (theme: Theme) => void;
   navigate: (page: string) => void;
   reset: () => void;
   install?: () => void;
+  onLogout?: () => void;
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [installHelp, setInstallHelp] = useState(false);
@@ -127,6 +130,7 @@ export default function Profile({
               </span>
               <span className="soon-tag">Em breve</span>
             </div>
+            {onLogout && <RowLink icon={<LogOut size={21} />} title="Sair" onClick={onLogout} />}
           </div>
           <SectionTitle title="Dados locais" />
           <div className="panel settings-list">

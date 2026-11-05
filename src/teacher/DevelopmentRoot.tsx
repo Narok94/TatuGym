@@ -9,7 +9,13 @@ import "./teacher.css";
 export default function DevelopmentRoot() {
   const [route, setRoute] = useState(location.hash);
   const [session, setSession] = useState<DevelopmentSession | null>(readDevelopmentSession);
-  useEffect(() => { const changed = () => setRoute(location.hash); window.addEventListener("hashchange", changed); return () => window.removeEventListener("hashchange", changed); }, []);
+  useEffect(() => {
+    const changed = () => setRoute(location.hash);
+    const restored = () => { setRoute(location.hash); setSession(readDevelopmentSession()); };
+    window.addEventListener("hashchange", changed);
+    window.addEventListener("pageshow", restored);
+    return () => { window.removeEventListener("hashchange", changed); window.removeEventListener("pageshow", restored); };
+  }, []);
   useEffect(() => {
     const target = !session ? "#login"
       : session.role === "PROFESSOR" ? (route.startsWith("#professor/") ? route : "#professor/dashboard")

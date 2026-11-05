@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { Copy, Download, Dumbbell, Pencil, Plus, Printer, Trash2, TrendingUp } from "lucide-react";
+import { Copy, Download, Dumbbell, LogOut, Pencil, Plus, Printer, Trash2, TrendingUp } from "lucide-react";
 import type { Assessment, LibraryExercise, Student, TeacherProfile, TeacherSnapshot, TrainingPlan } from "./models";
 import { exportAssessments, studentAssessments } from "./metrics";
 import { TeacherChart } from "./Charts";
@@ -101,7 +101,7 @@ export function ReportsPage({ snapshot }: { snapshot: TeacherSnapshot }) {
       {!report.rows.length && <Empty>Nenhuma avaliação corresponde ao período e aluno selecionados.</Empty>}
     </section></>;
 }
-export function SettingsPage({ snapshot, save }: { snapshot: TeacherSnapshot; save: (profile: TeacherProfile) => void }) {
+export function SettingsPage({ snapshot, save, onLogout }: { snapshot: TeacherSnapshot; save: (profile: TeacherProfile) => void; onLogout: () => void }) {
   const [error, setError] = useState("");
   return <><PageHeading title="Configurações do professor" description="Atualize seu perfil e guarde uma cópia dos seus dados de teste." />
     <div className="teacher-dashboard-columns"><section className="teacher-panel"><h2>Perfil profissional</h2><form className="teacher-form form-stack" onSubmit={event => { event.preventDefault(); const form = new FormData(event.currentTarget); try { save({ name: value(form, "name"), email: value(form, "email"), phone: value(form, "phone"), specialty: value(form, "specialty") }); setError(""); } catch (reason) { setError((reason as Error).message); } }}>
@@ -110,5 +110,6 @@ export function SettingsPage({ snapshot, save }: { snapshot: TeacherSnapshot; sa
       <section className="teacher-panel"><h2>Seus dados neste navegador</h2><p className="teacher-form-note">A persistência é local e provisória. Outros dispositivos, navegadores e endereços não compartilham os dados. Limpar o armazenamento do site remove os cadastros. A cópia abaixo contém apenas os registros deste professor.</p>
         <button className="button secondary" onClick={() => downloadText(JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), data: snapshot }, null, 2), "application/json", `tatugym-professor-${localDate()}.json`)}><Download size={16} />Exportar meus dados</button>
         <h2 className="teacher-settings-heading">Próxima integração</h2><p className="teacher-form-note">Autenticação real, credenciais dos alunos, sincronização, upload de imagens e controle de acesso no servidor serão implementados com o backend. O login simulado não é uma barreira de segurança.</p>
+        <button className="button secondary" onClick={onLogout}><LogOut size={16} />Sair</button>
       </section></div></>;
 }

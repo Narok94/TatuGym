@@ -46,7 +46,7 @@ export default function TeacherApp({ teacherId, route, leave }: { teacherId: str
       case "evolucao": content = <EvolutionPage key={route} snapshot={snapshot} initialStudentId={route.split("/")[2]} />; break;
       case "relatorios": content = <ReportsPage snapshot={snapshot} />; break;
       case "biblioteca": content = <LibraryPage snapshot={snapshot} edit={exercise => setLibraryEditor({ exercise })} remove={exercise => setDeleting({ title: `Excluir ${exercise.name}?`, description: "O exercício será removido da biblioteca. Treinos já criados mantêm sua cópia das instruções.", run: () => repository.deleteExercise(exercise.id) })} />; break;
-      case "configuracoes": content = <SettingsPage snapshot={snapshot} save={profile => { repository.saveProfile(profile); refresh(); setNotice("Configurações salvas neste navegador."); }} />; break;
+      case "configuracoes": content = <SettingsPage snapshot={snapshot} onLogout={() => leave(false)} save={profile => { repository.saveProfile(profile); refresh(); setNotice("Configurações salvas neste navegador."); }} />; break;
     }
   }
   return <div className="teacher-scope teacher-shell app-shell">

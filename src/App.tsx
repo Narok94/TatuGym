@@ -309,6 +309,7 @@ export default function App({ onLogout }: { onLogout?: () => void } = {}) {
         ) : page === "profile" ? (
           <Profile
             data={data}
+            onLogout={onLogout}
             navigate={navigate}
             setTheme={(theme) => setData((d) => ({ ...d, theme }))}
             reset={() => {
