@@ -74,7 +74,7 @@ export default function Session({ session, history, update, back, finish }: {
       </div>
     </header>
     <div className="execution-art">
-      <ExerciseImage key={exercise.id} name={exercise.name} className="execution-image" animate />
+      <ExerciseImage name={exercise.name} className="execution-image" />
       <button className="execution-icon previous" disabled={currentExercise === 0} aria-label="Exercício anterior" onClick={() => move(currentExercise - 1)}><ChevronLeft /></button>
       <button className="execution-icon next" disabled={currentExercise === workout.exercises.length - 1} aria-label="Próximo exercício" onClick={() => move(currentExercise + 1)}><ChevronRight /></button>
     </div>
