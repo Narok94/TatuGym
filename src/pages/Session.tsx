@@ -3,6 +3,7 @@ import { ArrowLeft, Check, ChevronLeft, ChevronRight, List, Pause, Play, Undo2, 
 import type { Session as SessionType, WorkoutRecord } from "../types";
 import { ExerciseImage } from "../components/ExerciseImage";
 import { Modal } from "../components/UI";
+import { formatWorkoutDuration, workoutElapsedSeconds } from "../workoutTime";
 import { completeSet, editSet, undoSet, emptyRest, lastExerciseSets, nextSet, selectSet, selectExercise, unlockRestAudio } from "../sessionLogic";
 
 export default function Session({ session, history, update, back, finish }: {
@@ -62,6 +63,9 @@ export default function Session({ session, history, update, back, finish }: {
       <button className="execution-icon" aria-label="Voltar" onClick={back}><ArrowLeft /></button>
       <div><h1>{exercise.name}</h1><p aria-live="polite">{index === undefined ? "Exercício concluído" : `Série ${index + 1} de ${exercise.sets}`}</p></div>
       <button className="execution-icon" aria-label="Lista de exercícios" onClick={() => setShowList(true)}><List /></button>
+      <div className="workout-elapsed" role="timer" aria-label="Tempo total de treino" aria-live="off">
+        <span>Tempo de treino</span><strong>{formatWorkoutDuration(workoutElapsedSeconds(session, now))}</strong>
+      </div>
       <div className="series-navigation" role="group" aria-label="Séries do exercício">
         {Array.from({length: exercise.sets}, (_, i) => {
           const done = session.sets.some(s => s.exerciseId === exercise.id && s.setIndex === i);

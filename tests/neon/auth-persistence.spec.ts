@@ -144,3 +144,70 @@ test('login opens the account when an old local copy conflicts', async ({ page, 
   expect(await page.evaluate(key => localStorage.getItem(key), studentKey)).toBe(original);
   expect(await (await request.get(studentUrl)).json()).toEqual(saved);
 });
+
+test('total workout time survives navigation and reload and appears in history', async ({ page, context }) => {
+  await page.clock.install({ time: new Date('2026-11-07T15:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-11-07T15:00:01Z'));
+  await page.goto('/#login');
+  await login(page, 'henrique', studentPassword);
+  await expect(page).toHaveURL(/#home$/);
+  const studentUrl = '/api/forja?action=student';
+  const baseline = await (await context.request.get(studentUrl)).json();
+  const data = createInitialData();
+  data.welcomed = true;
+  data.workouts = [{ ...data.workouts[0], exercises: [{ ...data.workouts[0].exercises[0], sets: 1 }] }];
+  data.history = [{
+    id: 'previous-duration', workout: data.workouts[0], startedAt: '2026-11-07T14:48:00Z',
+    finishedAt: '2026-11-07T14:58:00Z', currentExercise: 0, sets: [], rest: { remaining: 0, endsAt: null },
+  }];
+  const seeded = await context.request.post(studentUrl, { data: { ...baseline, data } });
+  expect(seeded.ok()).toBe(true);
+  try {
+    await page.reload();
+    await page.addStyleTag({ content: ':root { --safe-bottom: 34px; }' });
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' });
+    const checkNav = async () => {
+      const geometry = await nav.evaluate(bar => {
+        const box = bar.getBoundingClientRect();
+        return {
+          bottom: box.bottom, viewport: innerHeight, left: box.left, width: box.width, viewportWidth: innerWidth,
+          padding: parseFloat(getComputedStyle(bar).paddingBottom), parentIsBody: bar.parentElement === document.body,
+        };
+      });
+      expect(geometry.parentIsBody).toBe(true);
+      expect(Math.abs(geometry.bottom - geometry.viewport)).toBeLessThan(1);
+      expect(geometry.left).toBe(0);
+      expect(geometry.width).toBe(geometry.viewportWidth);
+      expect(geometry.padding).toBe(34);
+    };
+    await checkNav();
+    for (const label of ['Treinos', 'Dieta', 'Perfil', 'Início']) {
+      await nav.getByRole('button', { name: label, exact: true }).click();
+      await checkNav();
+    }
+    await page.getByRole('button', { name: 'Iniciar treino', exact: true }).click();
+    const elapsed = page.getByRole('timer', { name: 'Tempo total de treino', exact: true });
+    await expect(elapsed).toContainText('00:00:00');
+    await expect.poll(async () => (await (await context.request.get(studentUrl)).json()).data.activeSession?.startedAt).toBeTruthy();
+    const running = await (await context.request.get(studentUrl)).json();
+    await page.clock.fastForward(65000);
+    await expect(elapsed).toContainText('00:01:05');
+    await nav.getByRole('button', { name: 'Início', exact: true }).click();
+    await expect(page.getByText('Tempo 00:01:05', { exact: true })).toBeVisible();
+    await page.reload();
+    await page.getByRole('button', { name: 'Continuar treino', exact: true }).click();
+    await expect(elapsed).toContainText('00:01:05');
+    expect((await (await context.request.get(studentUrl)).json()).data.activeSession.startedAt).toBe(running.data.activeSession.startedAt);
+    await page.getByRole('button', { name: 'Concluir série atual', exact: true }).click();
+    await expect(page.getByText('Treino A registrado.', { exact: true })).toBeVisible();
+    await expect(page.locator('.daily-workout-time')).toContainText('00:11:05');
+    await expect(page.locator('.history-card').first()).toContainText('Duração 00:01:05');
+    await expect.poll(async () => (await (await context.request.get(studentUrl)).json()).data.history.length).toBe(2);
+    const saved = await (await context.request.get(studentUrl)).json();
+    expect(Date.parse(saved.data.history[0].finishedAt) - Date.parse(saved.data.history[0].startedAt)).toBe(65000);
+  } finally {
+    const current = await (await context.request.get(studentUrl)).json();
+    const restored = await context.request.post(studentUrl, { data: { ...baseline, revision: current.revision } });
+    expect(restored.ok()).toBe(true);
+  }
+});

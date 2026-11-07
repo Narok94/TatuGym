@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { AppData, WeightEntry } from "../types";
 import { localDate, uid } from "../store";
+import { formatWorkoutDuration, workoutElapsedSeconds } from "../workoutTime";
 import { EmptyState, Modal, PageHeader, SectionTitle } from "../components/UI";
 
 export default function Progress({
@@ -29,6 +30,10 @@ export default function Progress({
   const [date, setDate] = useState(localDate());
   const [openRecord, setOpenRecord] = useState<string | null>(null);
   const [exerciseId, setExerciseId] = useState("");
+  const today = localDate();
+  const todaySeconds = data.history
+    .filter(record => localDate(new Date(record.finishedAt)) === today)
+    .reduce((total, record) => total + workoutElapsedSeconds(record), 0);
   const sorted = [...data.weights].sort((a, b) => a.date.localeCompare(b.date));
   const recent = sorted.slice(-14);
   const min = Math.min(...recent.map((w) => w.value)) - 1,
@@ -226,6 +231,10 @@ export default function Progress({
       <div className="history-grid">
         <section>
           <SectionTitle title="Histórico de treinos" />
+          <div className="panel daily-workout-time">
+            <span>Tempo em treinos concluídos hoje</span>
+            <strong>{formatWorkoutDuration(todaySeconds)}</strong>
+          </div>
           <div className="history-list">
             {data.history.length ? (
               data.history.map((h) => (
@@ -246,6 +255,7 @@ export default function Progress({
                         {formatDate(h.finishedAt, true)} · {h.sets.length}{" "}
                         séries
                       </small>
+                      <small>Duração {formatWorkoutDuration(workoutElapsedSeconds(h))}</small>
                     </span>
                     <ChevronDown size={18} />
                   </button>

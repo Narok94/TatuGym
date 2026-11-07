@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { AppData, Workout } from "../types";
 import { localDate } from "../store";
+import { formatWorkoutDuration, workoutElapsedSeconds } from "../workoutTime";
 import { Anatomy } from "../components/Anatomy";
 import { WeeklyCheckIn } from "../components/WeeklyCheckIn";
 import {
@@ -37,9 +38,9 @@ export default function Home({
 }) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 30000);
+    const timer = window.setInterval(() => setNow(new Date()), data.activeSession ? 1000 : 30000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [data.activeSession?.id]);
   const
     hour = now.getHours(),
     today = localDate();
@@ -80,7 +81,9 @@ export default function Home({
                   {workout.exercises.length} exercícios
                 </span>
                 <span>
-                  <Clock3 size={14} />~{workout.duration} min
+                  <Clock3 size={14} />{data.activeSession
+                    ? `Tempo ${formatWorkoutDuration(workoutElapsedSeconds(data.activeSession, now.getTime()))}`
+                    : `~${workout.duration} min`}
                 </span>
               </div>
               <div className="hero-muscles" aria-label="Músculos trabalhados">

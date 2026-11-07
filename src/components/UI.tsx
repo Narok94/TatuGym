@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import forjaLogo from "../assets/logo_forja_transparente.png";
 import {
@@ -60,7 +61,7 @@ export function BottomNav({
   page: string;
   navigate: (page: string) => void;
 }) {
-  return (
+  return createPortal(
     <nav className="bottom-nav" aria-label="Navegação principal">
       {[
         { id: "home", label: "Início", icon: Home },
@@ -84,7 +85,8 @@ export function BottomNav({
           <span>{label}</span>
         </button>
       ))}
-    </nav>
+    </nav>,
+    document.body,
   );
 }
 export function SectionTitle({
