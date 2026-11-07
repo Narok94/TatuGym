@@ -5,7 +5,7 @@ const studentKey='meu-treino:v1:henrique-local';
 async function login(page:Page, user='professor') {
   await page.goto('/#professor');
   await page.getByLabel('Usuário ou e-mail',{exact:true}).fill(user);
-  await page.getByLabel('Senha',{exact:true}).fill('123');
+  await page.getByLabel('Senha',{exact:true}).fill(process.env.FORJA_SEED_TEACHER_PASSWORD!);
   await page.getByRole('button',{name:'Entrar',exact:true}).click();
   await expect(page.getByRole('heading',{name:/Olá,/})).toBeVisible();
 }
@@ -26,14 +26,14 @@ test('development teacher login, dashboard, logout and student data preservation
   await page.goto('/#professor');
   await page.getByLabel('Usuário ou e-mail',{exact:true}).fill('professor');await page.getByLabel('Senha',{exact:true}).fill('wrong');
   await page.getByRole('button',{name:'Entrar',exact:true}).click();await expect(page.getByRole('alert')).toContainText('inválidos');
-  await page.getByLabel('Senha',{exact:true}).fill('123');await page.getByRole('button',{name:'Entrar',exact:true}).click();
+  await page.getByLabel('Senha',{exact:true}).fill(process.env.FORJA_SEED_TEACHER_PASSWORD!);await page.getByRole('button',{name:'Entrar',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Olá, Professor TatuGym.'})).toBeVisible();
   await expect(page.locator('.teacher-stat strong')).toHaveText(['0','0','0','0']);
   await page.reload();await expect(page.getByRole('heading',{name:'Olá, Professor TatuGym.'})).toBeVisible();
   expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)!),studentKey)).toEqual(data);
   await page.getByRole('button',{name:'Abrir menu',exact:true}).click();
   await page.getByRole('button',{name:'Ambiente do aluno',exact:true}).click();
-  await page.getByLabel('Usuário ou e-mail',{exact:true}).fill('henrique');await page.getByLabel('Senha',{exact:true}).fill('9860');
+  await page.getByLabel('Usuário ou e-mail',{exact:true}).fill('henrique');await page.getByLabel('Senha',{exact:true}).fill(process.env.FORJA_SEED_STUDENT_PASSWORD!);
   await page.getByRole('button',{name:'Entrar',exact:true}).click();
   await expect(page.getByRole('button',{name:'Iniciar treino',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Sair da conta',exact:true}).click();

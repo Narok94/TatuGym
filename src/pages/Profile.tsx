@@ -75,6 +75,7 @@ export default function Profile({
               <TrendingUp size={17} />
               Acompanhar meu progresso
             </button>
+            {onLogout && <button className="button secondary full-width profile-logout" onClick={onLogout}><LogOut size={18} />Sair</button>}
           </section>
           <div className="privacy-note">
             <ShieldCheck size={20} />
@@ -130,7 +131,6 @@ export default function Profile({
               </span>
               <span className="soon-tag">Em breve</span>
             </div>
-            {onLogout && <RowLink icon={<LogOut size={21} />} title="Sair" onClick={onLogout} />}
           </div>
           <SectionTitle title="Dados locais" />
           <div className="panel settings-list">

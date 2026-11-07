@@ -13,6 +13,8 @@
 .teacher-kicker { color: #a0acb2; font-size: 9px; letter-spacing: 1.5px; font-weight: 650; margin-bottom: 7px; text-transform: uppercase; }
 .teacher-topbar strong { font-size: 16px; }
 .teacher-user { display: flex; align-items: center; gap: 12px; font-size: 12px; text-decoration: none; }
+.teacher-topbar .teacher-account-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; margin-left: auto; }
+.teacher-logout { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; min-height: 40px; padding: 8px 10px; border: 1px solid #ff7a2455; border-radius: 10px; background: #ff7a2418; color: #fff; font-size: 12px; }
 .teacher-user b { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid #ff7a2433; background: #ff7a2412; color: #ff944e; }
 .teacher-local-notice { padding: 9px 32px; background: #ff7a240a; color: #bdada1; font-size: 10px; line-height: 1.5; border-bottom: 1px solid #ff7a2415; }
 .teacher-content { padding: 28px 32px; max-width: 1600px; margin: auto; }

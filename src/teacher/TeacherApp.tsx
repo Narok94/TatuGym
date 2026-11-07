@@ -3,12 +3,13 @@ import type { ReactNode } from "react";
 import { Activity, BookOpen, ClipboardList, Dumbbell, LayoutDashboard, LogOut, Menu, Settings, TrendingUp, Users, X } from "lucide-react";
 import { Brand, Modal } from "../components/UI";
 import { Anatomy } from "../components/Anatomy";
-import { createTeacherRepository, TEACHER_STORAGE_KEY } from "./repository";
+import { createTeacherRepository } from "./repository";
 import { monthlyAssessments } from "./metrics";
 import { TeacherChart } from "./Charts";
-import type { Assessment, LibraryExercise, Student, TeacherRepository, TeacherSnapshot, TrainingPlan } from "./models";
+import type { Assessment, LibraryExercise, Student, TeacherSnapshot, TrainingPlan } from "./models";
 import { AssessmentEditor, LibraryEditor, PlanEditor, StudentEditor } from "./Forms";
 import { AssessmentsPage, EvolutionPage, LibraryPage, PlansPage, ReportsPage, SettingsPage, StudentsPage } from "./Pages";
+import "./teacher.css";
 
 const pages = [
   { id: "dashboard", name: "Dashboard", icon: LayoutDashboard }, { id: "alunos", name: "Alunos", icon: Users },
@@ -24,29 +25,25 @@ export default function TeacherApp({ teacherId, route, leave }: { teacherId: str
   const [planEditor, setPlanEditor] = useState<{ plan?: TrainingPlan } | null>(null);
   const [assessmentEditor, setAssessmentEditor] = useState<{ assessment?: Assessment } | null>(null);
   const [libraryEditor, setLibraryEditor] = useState<{ exercise?: LibraryExercise } | null>(null);
-  const [deleting, setDeleting] = useState<{ title: string; description: string; run: () => void } | null>(null);
+  const [deleting, setDeleting] = useState<{ title: string; description: string; run: () => Promise<void> } | null>(null);
   const [notice, setNotice] = useState("");
   const page = pages.find(item => item.id === route.split("/")[1]) ?? pages[0];
-  const refresh = () => { try { setSnapshot(repository.read()); setError(""); } catch (reason) { setError((reason as Error).message); } };
-  const perform = (action: () => void) => { try { action(); refresh(); setNotice("Alteração salva neste navegador."); } catch (reason) { setError((reason as Error).message); } };
-  useEffect(() => {
-    try { setSnapshot(repository.read()); setError(""); } catch (reason) { setError((reason as Error).message); }
-    const changed = (event: StorageEvent) => { if (event.key === TEACHER_STORAGE_KEY) { try { setSnapshot(repository.read()); setError(""); } catch (reason) { setError((reason as Error).message); } } };
-    window.addEventListener("storage", changed); return () => window.removeEventListener("storage", changed);
-  }, [repository]);
+  const refresh = async () => { try { setSnapshot(await repository.read()); setError(""); } catch (reason) { setError((reason as Error).message); } };
+  const perform = async (action: () => Promise<unknown>) => { try { await action(); await refresh(); setNotice("Alteração salva no servidor."); } catch (reason) { setError((reason as Error).message); } };
+  useEffect(() => { void refresh(); }, [repository]);
   useEffect(() => { const previous = document.documentElement.dataset.theme; document.documentElement.dataset.theme = "dark"; return () => { document.documentElement.dataset.theme = previous; }; }, []);
   useEffect(() => { setMenu(false); setNotice(""); window.scrollTo(0, 0); }, [route]);
   let content: ReactNode = null;
   if (snapshot) {
     switch (page.id) {
-      case "dashboard": content = <TeacherDashboard snapshot={snapshot} repository={repository} refresh={refresh} />; break;
-      case "alunos": content = <StudentsPage snapshot={snapshot} edit={student => setStudentEditor({ student })} remove={student => setDeleting({ title: `Excluir ${student.name}?`, description: "A conta local, os treinos e as avaliações deste aluno serão excluídos deste navegador. Esta ação não pode ser desfeita.", run: () => repository.deleteStudent(student.id) })} />; break;
-      case "treinos": content = <PlansPage snapshot={snapshot} edit={plan => setPlanEditor({ plan })} remove={plan => setDeleting({ title: `Excluir ${plan.name}?`, description: "Este plano local será excluído. A conta do aluno será preservada.", run: () => repository.deletePlan(plan.id) })} duplicate={plan => perform(() => { repository.savePlan({ ...plan, name: `${plan.name} (cópia)`, status: "RASCUNHO" }); })} />; break;
-      case "avaliacoes": content = <AssessmentsPage snapshot={snapshot} edit={assessment => setAssessmentEditor({ assessment })} remove={assessment => setDeleting({ title: "Excluir avaliação?", description: "Apenas esta medição local será excluída. As demais avaliações serão preservadas.", run: () => repository.deleteAssessment(assessment.id) })} />; break;
+      case "dashboard": content = <TeacherDashboard snapshot={snapshot} />; break;
+      case "alunos": content = <StudentsPage snapshot={snapshot} edit={student => setStudentEditor({ student })} remove={student => setDeleting({ title: `Excluir ${student.name}?`, description: "O cadastro será marcado como inativo. Treinos e avaliações serão preservados.", run: () => repository.deleteStudent(student.id) })} />; break;
+      case "treinos": content = <PlansPage snapshot={snapshot} edit={plan => setPlanEditor({ plan })} remove={plan => setDeleting({ title: `Excluir ${plan.name}?`, description: "Este plano será arquivado. A conta do aluno será preservada.", run: () => repository.deletePlan(plan.id) })} duplicate={plan => perform(async () => { await repository.savePlan({ ...plan, name: `${plan.name} (cópia)`, status: "RASCUNHO" }); })} />; break;
+      case "avaliacoes": content = <AssessmentsPage snapshot={snapshot} edit={assessment => setAssessmentEditor({ assessment })} remove={assessment => setDeleting({ title: "Excluir avaliação?", description: "Esta medição será arquivada. As demais avaliações serão preservadas.", run: () => repository.deleteAssessment(assessment.id) })} />; break;
       case "evolucao": content = <EvolutionPage key={route} snapshot={snapshot} initialStudentId={route.split("/")[2]} />; break;
       case "relatorios": content = <ReportsPage snapshot={snapshot} />; break;
       case "biblioteca": content = <LibraryPage snapshot={snapshot} edit={exercise => setLibraryEditor({ exercise })} remove={exercise => setDeleting({ title: `Excluir ${exercise.name}?`, description: "O exercício será removido da biblioteca. Treinos já criados mantêm sua cópia das instruções.", run: () => repository.deleteExercise(exercise.id) })} />; break;
-      case "configuracoes": content = <SettingsPage snapshot={snapshot} onLogout={() => leave(false)} save={profile => { repository.saveProfile(profile); refresh(); setNotice("Configurações salvas neste navegador."); }} />; break;
+      case "configuracoes": content = <SettingsPage snapshot={snapshot} onLogout={() => leave(false)} save={async profile => { await repository.saveProfile(profile); await refresh(); setNotice("Configurações salvas no servidor."); }} />; break;
     }
   }
   return <div className="teacher-scope teacher-shell app-shell">
@@ -58,24 +55,24 @@ export default function TeacherApp({ teacherId, route, leave }: { teacherId: str
     </aside>
     <div className="teacher-body"><header className="teacher-topbar"><button className="teacher-menu-button icon-button" aria-label={menu ? "Fechar menu" : "Abrir menu"} onClick={() => setMenu(!menu)}>{menu ? <X /> : <Menu />}</button>
       <div><p className="teacher-kicker">ESPAÇO DO PROFESSOR</p><strong>{page.name}</strong></div>
-      <a className="teacher-user" href="#professor/configuracoes"><span>{snapshot?.profile.name ?? "Professor"}</span><b>{snapshot?.profile.name.charAt(0) ?? "P"}</b></a>
+      <div className="teacher-account-actions"><a className="teacher-user" href="#professor/configuracoes"><span>{snapshot?.profile.name ?? "Professor"}</span><b>{snapshot?.profile.name.charAt(0) ?? "P"}</b></a>
+        <button className="teacher-logout" aria-label="Sair da conta" onClick={() => leave(false)}><LogOut size={18} />Sair</button></div>
     </header>
-      <p className="teacher-local-notice">Desenvolvimento · dados locais e provisórios neste navegador. Sem sincronização ou autenticação de produção.</p>
+      <p className="teacher-local-notice">Dados sincronizados com segurança na sua conta FORJA.</p>
       <main className="teacher-content" id="teacher-content">
         {error && <div className="teacher-error" role="alert">{error}<button className="button secondary" onClick={refresh}>Tentar novamente</button></div>}
         {notice && <p role="status" className="teacher-success">{notice}</p>}
         {content}
       </main>
     </div>
-    {studentEditor && <StudentEditor student={studentEditor.student} close={() => setStudentEditor(null)} save={(input, id) => { repository.saveStudent(input, id); refresh(); setStudentEditor(null); setNotice("Aluno salvo neste navegador."); }} />}
-    {planEditor && snapshot && <PlanEditor plan={planEditor.plan} students={snapshot.students} library={snapshot.library} close={() => setPlanEditor(null)} save={(input, id) => { repository.savePlan(input, id); refresh(); setPlanEditor(null); setNotice("Treino salvo neste navegador."); }} />}
-    {assessmentEditor && snapshot && <AssessmentEditor assessment={assessmentEditor.assessment} students={snapshot.students} close={() => setAssessmentEditor(null)} save={(input, id) => { repository.saveAssessment(input, id); refresh(); setAssessmentEditor(null); setNotice("Avaliação salva neste navegador."); }} />}
-    {libraryEditor && <LibraryEditor exercise={libraryEditor.exercise} close={() => setLibraryEditor(null)} save={(input, id) => { repository.saveExercise(input, id); refresh(); setLibraryEditor(null); setNotice("Exercício salvo na biblioteca local."); }} />}
-    {deleting && <Modal title={deleting.title} onClose={() => setDeleting(null)}><p className="teacher-delete-note">{deleting.description}</p><div className="teacher-form-actions"><button className="button secondary" onClick={() => setDeleting(null)}>Cancelar</button><button className="button primary" onClick={() => { try { deleting.run(); refresh(); setDeleting(null); setNotice("Registro excluído."); } catch (reason) { setError((reason as Error).message); setDeleting(null); } }}>Confirmar exclusão</button></div></Modal>}
+    {studentEditor && <StudentEditor student={studentEditor.student} close={() => setStudentEditor(null)} save={async (input, id) => { await repository.saveStudent(input, id); await refresh(); setStudentEditor(null); setNotice("Aluno salvo no servidor."); }} />}
+    {planEditor && snapshot && <PlanEditor plan={planEditor.plan} students={snapshot.students} library={snapshot.library} close={() => setPlanEditor(null)} save={async (input, id) => { await repository.savePlan(input, id); await refresh(); setPlanEditor(null); setNotice("Treino salvo no servidor."); }} />}
+    {assessmentEditor && snapshot && <AssessmentEditor assessment={assessmentEditor.assessment} students={snapshot.students} close={() => setAssessmentEditor(null)} save={async (input, id) => { await repository.saveAssessment(input, id); await refresh(); setAssessmentEditor(null); setNotice("Avaliação salva no servidor."); }} />}
+    {libraryEditor && <LibraryEditor exercise={libraryEditor.exercise} close={() => setLibraryEditor(null)} save={async (input, id) => { await repository.saveExercise(input, id); await refresh(); setLibraryEditor(null); setNotice("Exercício salvo na biblioteca."); }} />}
+    {deleting && <Modal title={deleting.title} onClose={() => setDeleting(null)}><p className="teacher-delete-note">{deleting.description}</p><div className="teacher-form-actions"><button className="button secondary" onClick={() => setDeleting(null)}>Cancelar</button><button className="button primary" onClick={async () => { try { await deleting.run(); await refresh(); setDeleting(null); setNotice("Registro excluído."); } catch (reason) { setError((reason as Error).message); setDeleting(null); } }}>Confirmar exclusão</button></div></Modal>}
   </div>;
 }
-function TeacherDashboard({ snapshot, repository, refresh }: { snapshot: TeacherSnapshot; repository: TeacherRepository; refresh: () => void }) {
-  const [error, setError] = useState("");
+function TeacherDashboard({ snapshot }: { snapshot: TeacherSnapshot }) {
   const stats = [
     { name: "Alunos ativos", value: snapshot.students.filter(item => item.status === "ATIVO").length, icon: Users },
     { name: "Treinos ativos", value: snapshot.plans.filter(item => item.status === "ATIVO").length, icon: Dumbbell },
@@ -88,10 +85,9 @@ function TeacherDashboard({ snapshot, repository, refresh }: { snapshot: Teacher
     <div className="teacher-dashboard-columns"><section className="teacher-panel teacher-welcome"><div><p className="teacher-kicker">SUA TURMA, SEU ACOMPANHAMENTO</p><h2>Constância se constrói em conjunto.</h2><p>Cadastre seus alunos, organize os treinos e registre avaliações para acompanhar a evolução.</p>
       <a className="button primary" href="#professor/treinos">Organizar treinos</a></div><Anatomy group="push" /></section>
       <section className="teacher-panel"><h2>Avaliações por mês</h2><TeacherChart title="Avaliações nos últimos seis meses" data={monthlyAssessments(snapshot.assessments)} bars /></section></div>
-    <div className="teacher-dashboard-columns"><section className="teacher-panel"><div className="teacher-section-heading"><h2>Atividades recentes</h2><span>{snapshot.activities.length} registros locais</span></div>
+    <div className="teacher-dashboard-columns"><section className="teacher-panel"><div className="teacher-section-heading"><h2>Atividades recentes</h2><span>{snapshot.activities.length} registros</span></div>
       {snapshot.activities.length ? <ul className="teacher-activity">{snapshot.activities.slice(0, 7).map(item => <li key={item.id}><span className="pulse-dot" /><div>{item.title}<small>{new Date(item.at).toLocaleString("pt-BR")}</small></div></li>)}</ul> : <p className="teacher-empty">Seus cadastros e atualizações aparecerão aqui.</p>}</section>
       <section className="teacher-panel"><h2>Comece pelo essencial</h2><div className="teacher-quick-links"><a href="#professor/alunos">Cadastrar e acompanhar alunos <Users size={18} /></a><a href="#professor/avaliacoes">Registrar avaliação física <ClipboardList size={18} /></a><a href="#professor/biblioteca">Organizar sua biblioteca <BookOpen size={18} /></a></div>
-        {!snapshot.students.length && <><button className="button secondary" onClick={() => { try { repository.loadDemo(); refresh(); setError(""); } catch (reason) { setError((reason as Error).message); } }}>Carregar demonstração</button><small className="teacher-help">Opcional: cria dois alunos fictícios, um treino e três avaliações. Não preenche a biblioteca.</small></>}
-        {error && <p className="teacher-error" role="alert">{error}</p>}</section></div>
+</section></div>
   </>;
 }

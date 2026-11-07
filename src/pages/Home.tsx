@@ -63,7 +63,7 @@ export default function Home({
       <div className="dashboard-grid">
         <div className="dashboard-main">
           <WeeklyCheckIn today={now} />
-          <section className="hero-workout">
+          {workout ? <section className="hero-workout">
             <Anatomy group={workout.muscle} />
             <div className="hero-content">
               <span className="pill">
@@ -96,7 +96,7 @@ export default function Home({
             <span className="hero-number">
               0{workout.id === "a" ? "1" : workout.id === "b" ? "2" : "3"}
             </span>
-          </section>
+          </section> : <section className="hero-workout"><div className="hero-content"><h2>Seus treinos</h2><p>Seus registros locais serão importados ao entrar no navegador em que foram salvos. Os treinos vinculados pelo professor também aparecerão aqui.</p></div></section>}
         </div>
         <aside className="dashboard-aside">
           <SectionTitle title="No seu ritmo" />

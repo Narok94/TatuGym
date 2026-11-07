@@ -153,7 +153,7 @@ export default function App({ onLogout }: { onLogout?: () => void } = {}) {
       <main className="welcome">
         <div className="welcome-top">
           <Brand />
-          {onLogout && <button className="icon-button" aria-label="Sair da conta" onClick={onLogout}><LogOut size={20} /></button>}
+          {onLogout && <button className="icon-button student-logout" aria-label="Sair da conta" onClick={onLogout}><LogOut size={18} /><span>Sair</span></button>}
           <span className="welcome-tag">SUA EVOLUÇÃO COMEÇA AQUI</span>
         </div>
         <div className="welcome-layout">
@@ -229,7 +229,7 @@ export default function App({ onLogout }: { onLogout?: () => void } = {}) {
           >
             {data.user.name.trim().charAt(0).toUpperCase()}
           </button>
-          {onLogout && <button className="icon-button student-logout" aria-label="Sair da conta" title="Sair" onClick={onLogout}><LogOut size={20} /></button>}
+          {onLogout && <button className="icon-button student-logout" aria-label="Sair da conta" title="Sair" onClick={onLogout}><LogOut size={18} /><span>Sair</span></button>}
         </div>
       </header>
       {offline && (
@@ -313,7 +313,7 @@ export default function App({ onLogout }: { onLogout?: () => void } = {}) {
             navigate={navigate}
             setTheme={(theme) => setData((d) => ({ ...d, theme }))}
             reset={() => {
-              setData({ ...createInitialData(), welcomed: true });
+              setData({ ...createInitialData(), user:data.user, welcomed: true });
               navigate("home");
             }}
             install={

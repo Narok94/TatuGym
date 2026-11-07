@@ -14,10 +14,12 @@
 .forja-password input { padding-right: 52px; }
 .forja-password > button { position: absolute; right: 3px; top: 4px; width: 44px; height: 44px; display: grid; place-items: center; color: #d1d1d1; border-radius: 8px; }
 .forja-enter { width: 100%; min-height: 52px; border-radius: 12px; background: linear-gradient(110deg, #ff7b00, #ff5e00); color: #fff; font-weight: 700; font-size: 17px; margin-top: 4px; }
+.forja-enter:disabled { opacity: .6; cursor: not-allowed; }
 .forja-recovery { display: flex; align-items: center; justify-content: center; min-height: 40px; text-decoration: none; color: #eee; font-size: 12px; text-align: center; }
 .forja-login-error, .forja-login-message { padding: 10px; border: 1px solid #ff7a2440; border-radius: 8px; color: #ffc293; background: #ff7a240b; font-size: 12px; line-height: 1.5; margin: 0; }
 .forja-login-footer { text-align: center; color: #999; font-size: 9px; line-height: 1.5; padding: 12px 22px; }
-.topbar.with-session-controls .student-logout { flex-shrink: 0; }
+.student-logout { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; width: auto; min-width: 68px; min-height: 40px; padding: 8px 10px; border: 1px solid #ff7a2455; border-radius: 10px; background: #ff7a2418; color: #fff; font-size: 12px; }
+.profile-card .profile-logout { margin-top: 10px; }
 @media (min-width: 900px) {
   .forja-login-main { align-items: flex-end; padding-right: 70px; }
   .forja-login-logo { margin-right: 40px; }

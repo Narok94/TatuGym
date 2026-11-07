@@ -8,18 +8,20 @@ import type { Assessment, AssessmentInput, LibraryExercise, LibraryInput, PlanEx
 
 export const value = (form: FormData, name: string) => String(form.get(name) ?? "").trim();
 export const optionalNumber = (form: FormData, name: string) => value(form, name) === "" ? null : Number(value(form, name));
-export function Editor({ title, children, close, save }: { title: string; children: ReactNode; close: () => void; save: (form: FormData) => void }) {
+export function Editor({ title, children, close, save }: { title: string; children: ReactNode; close: () => void | Promise<void>; save: (form: FormData) => void | Promise<void> }) {
   const [error, setError] = useState("");
-  return <Modal title={title} onClose={close}><form className="teacher-form form-stack" onSubmit={event => { event.preventDefault();
-    try { save(new FormData(event.currentTarget)); } catch (reason) { setError((reason as Error).message); }
-  }}>{children}{error && <p className="teacher-error" role="alert">{error}</p>}<div className="teacher-form-actions"><button type="button" className="button secondary" onClick={close}>Cancelar</button><button className="button primary" type="submit">Salvar</button></div></form></Modal>;
+  const [pending,setPending] = useState(false);
+  return <Modal title={title} onClose={close}><form className="teacher-form form-stack" onSubmit={async event => { event.preventDefault();
+    if(pending) return;setPending(true);
+    try { await save(new FormData(event.currentTarget)); } catch (reason) { setError((reason as Error).message); } finally {setPending(false);}
+  }}>{children}{error && <p className="teacher-error" role="alert">{error}</p>}<div className="teacher-form-actions"><button type="button" className="button secondary" onClick={close}>Cancelar</button><button className="button primary" type="submit" disabled={pending}>{pending?'Salvando…':'Salvar'}</button></div></form></Modal>;
 }
-export function StudentEditor({ student, close, save }: { student?: Student; close: () => void; save: (input: StudentInput, id?: string) => void }) {
+export function StudentEditor({ student, close, save }: { student?: Student; close: () => void | Promise<void>; save: (input: StudentInput, id?: string) => void | Promise<void> }) {
   return <Editor title={student ? "Editar aluno" : "Cadastrar aluno"} close={close} save={form => save({
     name: value(form, "name"), email: value(form, "email"), phone: value(form, "phone"), birthDate: value(form, "birthDate"), goal: value(form, "goal"),
     status: value(form, "status") as StudentInput["status"], notes: value(form, "notes"),
   }, student?.id)}>
-    <p className="teacher-form-note">Conta local de aluno, vinculada apenas a este professor. Convites e credenciais reais serão integrados ao backend.</p>
+    <p className="teacher-form-note">Cadastro de aluno vinculado a este professor. O cadastro não cria credenciais de acesso.</p>
     <label>Nome completo<input name="name" required maxLength={100} defaultValue={student?.name} /></label>
     <label>E-mail do aluno<input name="email" type="email" required maxLength={200} defaultValue={student?.email} /></label>
     <div className="form-grid"><label>Telefone<input name="phone" type="tel" maxLength={30} defaultValue={student?.phone} /></label>
@@ -30,7 +32,7 @@ export function StudentEditor({ student, close, save }: { student?: Student; clo
   </Editor>;
 }
 const blankExercise = (): PlanExercise => ({ id: uid(), name: "", muscleGroup: "", sets: 3, reps: "8–12", load: 0, rest: 60, instructions: "" });
-export function AssessmentEditor({ assessment, students, close, save }: { assessment?: Assessment; students: Student[]; close: () => void; save: (input: AssessmentInput, id?: string) => void }) {
+export function AssessmentEditor({ assessment, students, close, save }: { assessment?: Assessment; students: Student[]; close: () => void | Promise<void>; save: (input: AssessmentInput, id?: string) => void | Promise<void> }) {
   return <Editor title={assessment ? "Editar avaliação" : "Registrar avaliação"} close={close} save={form => save({ studentId: value(form, "studentId"), date: value(form, "date"), weight: Number(value(form, "weight")), height: Number(value(form, "height")), waist: optionalNumber(form, "waist"), hip: optionalNumber(form, "hip"), bodyFat: optionalNumber(form, "bodyFat"), notes: value(form, "notes") }, assessment?.id)}>
     <label>Aluno da avaliação<select required name="studentId" defaultValue={assessment?.studentId ?? students[0]?.id}><option value="">Selecione um aluno</option>{students.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label>
     <label>Data da avaliação<input name="date" type="date" required max={localDate()} defaultValue={assessment?.date ?? localDate()} /></label>
@@ -41,7 +43,7 @@ export function AssessmentEditor({ assessment, students, close, save }: { assess
     <p className="teacher-form-note">Medidas opcionais podem ficar em branco. Os gráficos usam apenas valores informados.</p>
   </Editor>;
 }
-export function PlanEditor({ plan, students, library, close, save }: { plan?: TrainingPlan; students: Student[]; library: LibraryExercise[]; close: () => void; save: (input: PlanInput, id?: string) => void }) {
+export function PlanEditor({ plan, students, library, close, save }: { plan?: TrainingPlan; students: Student[]; library: LibraryExercise[]; close: () => void | Promise<void>; save: (input: PlanInput, id?: string) => void | Promise<void> }) {
   const [exercises, setExercises] = useState<PlanExercise[]>(() => plan ? structuredClone(plan.exercises) : [blankExercise()]);
   const patch = (id: string, change: Partial<PlanExercise>) => setExercises(items => items.map(item => item.id === id ? { ...item, ...change } : item));
   const move = (index: number, offset: number) => setExercises(items => { const next = [...items]; [next[index], next[index + offset]] = [next[index + offset], next[index]]; return next; });
@@ -65,7 +67,7 @@ export function PlanEditor({ plan, students, library, close, save }: { plan?: Tr
     </fieldset>)}
   </Editor>;
 }
-export function LibraryEditor({ exercise, close, save }: { exercise?: LibraryExercise; close: () => void; save: (input: LibraryInput, id?: string) => void }) {
+export function LibraryEditor({ exercise, close, save }: { exercise?: LibraryExercise; close: () => void | Promise<void>; save: (input: LibraryInput, id?: string) => void | Promise<void> }) {
   return <Editor title={exercise ? "Editar exercício da biblioteca" : "Cadastrar exercício"} close={close} save={form => save({ name: value(form, "name"), muscleGroup: value(form, "muscleGroup"), equipment: value(form, "equipment"), instructions: value(form, "instructions"), imageUrl: value(form, "imageUrl") }, exercise?.id)}>
     <label>Nome do exercício<input name="name" required maxLength={100} defaultValue={exercise?.name} /></label>
     <label>Grupo muscular<input name="muscleGroup" required maxLength={100} defaultValue={exercise?.muscleGroup} /></label>

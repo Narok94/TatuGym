@@ -1,91 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { SetStateAction } from "react";
-import { createInitialData } from "./data";
-import type { AppData } from "./types";
-
-// Namespace por usuário e versão; a identidade local poderá vir de uma conta no futuro.
-export const STORAGE_KEY = "meu-treino:v1:henrique-local";
-export const localDate = (date = new Date()) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-export const uid = () =>
-  globalThis.crypto?.randomUUID?.() ||
-  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-function readSavedData(): {
-  data: AppData;
-  error: string;
-  recovery: string | null;
-} {
-  let raw: string | null = null;
-  try {
-    raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { data: createInitialData(), error: "", recovery: null };
-    const saved = JSON.parse(raw);
-    if (
-      saved.version !== 1 ||
-      !saved.user?.id ||
-      !saved.mealLogs ||
-      !Array.isArray(saved.workouts) ||
-      !saved.workouts.length ||
-      !saved.workouts.every(
-        (w: AppData["workouts"][number]) =>
-          w.id && Array.isArray(w.exercises) && w.exercises.length,
-      ) ||
-      !Array.isArray(saved.history) ||
-      !Array.isArray(saved.meals) ||
-      !saved.meals.length ||
-      !Array.isArray(saved.weights)
-    )
-      throw new Error("Formato inválido");
-    return { data: saved, error: "", recovery: null };
-  } catch {
-    return {
-      data: createInitialData(),
-      error:
-        "Não foi possível ler os dados locais. O conteúdo original será preservado em uma chave de recuperação antes de salvar alterações.",
-      recovery: raw,
-    };
-  }
-}
+import { useCallback,useEffect,useState } from 'react';
+import type { SetStateAction } from 'react';
+import type { AppData } from './types';
+import { LEGACY_STUDENT_KEY,viewStudent,updateStudent,persistenceError } from './persistence';
+export const STORAGE_KEY=LEGACY_STUDENT_KEY;
+export const localDate=(date=new Date())=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+export const uid=()=>crypto.randomUUID();
 export function useAppData() {
-  const [initial] = useState(readSavedData);
-  const [storageError, setStorageError] = useState(initial.error);
-  const [data, setDataState] = useState<AppData>(initial.data);
-  const latest = useRef(initial.data);
-  const recovery = useRef(initial.recovery);
-  const persist = useCallback((value: AppData) => {
-    // Não substituir conteúdo ilegível durante a inicialização.
-    if (initial.error && value === initial.data) return;
-    try {
-      if (recovery.current !== null) {
-        localStorage.setItem(`${STORAGE_KEY}:recovery`, recovery.current);
-        recovery.current = null;
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
-      setStorageError("");
-    } catch {
-      setStorageError(
-        "Não foi possível salvar. Verifique o espaço ou as permissões do navegador. Mantenha esta página aberta e exporte seus dados no Perfil.",
-      );
-    }
-  }, [initial]);
-  const setData = useCallback((action: SetStateAction<AppData>) => {
-    const next = typeof action === "function" ? action(latest.current) : action;
-    if (next === latest.current) return;
-    latest.current = next;
-    // Save before rendering or navigating, including the final input before closing.
-    persist(next);
-    setDataState(next);
-  }, [persist]);
-  useEffect(() => {
-    const flush = () => persist(latest.current);
-    const onVisibility = () => { if (document.visibilityState === "hidden") flush(); };
-    flush();
-    window.addEventListener("pagehide", flush);
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      window.removeEventListener("pagehide", flush);
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, [persist]);
-  return { data, setData, storageError };
+  const [data,setState]=useState(viewStudent);
+  const [storageError,setError]=useState(persistenceError());
+  useEffect(()=>{const changed=()=>{setState(viewStudent());setError(persistenceError());};window.addEventListener('forja:data',changed);return()=>window.removeEventListener('forja:data',changed);},[]);
+  const setData=useCallback((action:SetStateAction<AppData>)=>{
+    const current=viewStudent();
+    const next=typeof action==='function'?action(current):action;
+    if(next!==current) {updateStudent(next);setState(next);}
+  },[]);
+  return {data,setData,storageError};
 }

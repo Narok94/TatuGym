@@ -4,20 +4,27 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "node scripts/dev.mjs",
+    "db:inspect": "node --env-file-if-exists=.env.development.local scripts/inspect-db.mjs",
+    "db:migrate": "node --env-file-if-exists=.env.development.local scripts/migrate.mjs",
+    "db:seed": "node --env-file-if-exists=.env.development.local scripts/seed-users.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "playwright test",
+    "test": "node scripts/test-neon.mjs",
+    "test:neon": "node scripts/test-neon.mjs",
     "verify:teacher-production": "node scripts/verify-teacher-production.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
+    "pg": "^8.23.1",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
     "@tailwindcss/vite": "^4.1.0",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.0",

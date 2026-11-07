@@ -29,7 +29,7 @@ test('FORJA approved login keeps assets proportional and form accessible on mobi
     await expect(page.getByRole('button', { name: 'Entrar', exact: true })).toBeInViewport();
     if (width !== 320) await page.screenshot({ path: `test-results/login-forja-${width}-${test.info().project.name}.png`, fullPage: true });
   }
-  await page.getByLabel('Senha', { exact: true }).fill('123');
+  await page.getByLabel('Senha', { exact: true }).fill(process.env.FORJA_SEED_TEACHER_PASSWORD!);
   await page.getByRole('button', { name: 'Mostrar senha', exact: true }).click();
   await expect(page.getByLabel('Senha', { exact: true })).toHaveAttribute('type', 'text');
   await page.getByRole('button', { name: 'Ocultar senha', exact: true }).click();
@@ -53,8 +53,8 @@ test('development accounts preserve student progress, persist session, logout an
     expect(await page.evaluate(key => localStorage.getItem(`${key}:weekly-checkins`), key)).toBe('{"2026-11-02":true}');
   };
   await page.goto('/#workout/a'); await expect(page).toHaveURL(/#login$/); await unchanged();
-  await login(page, 'henrique', '123'); await expect(page.getByRole('alert')).toContainText('inválidos');
-  await login(page, 'henrique', '9860'); await expect(page).toHaveURL(/#home$/);
+  await login(page, 'henrique', process.env.FORJA_SEED_TEACHER_PASSWORD!); await expect(page.getByRole('alert')).toContainText('inválidos');
+  await login(page, 'henrique', process.env.FORJA_SEED_STUDENT_PASSWORD!); await expect(page).toHaveURL(/#home$/);
   await expect(page.getByRole('button', { name: 'Continuar treino', exact: true })).toBeVisible(); await unchanged();
   await page.goto('/#professor/alunos'); await expect(page).toHaveURL(/#home$/);
   await expect(page.locator('.teacher-shell')).toHaveCount(0); await unchanged();
@@ -65,9 +65,9 @@ test('development accounts preserve student progress, persist session, logout an
   await page.goBack(); await expect(page).toHaveURL(/#login$/);
   await expect(page.locator('.app-shell')).toHaveCount(0);
   await page.goto('/#session'); await expect(page).toHaveURL(/#login$/);
-  await login(page, 'henrique', '9860'); await expect(page).toHaveURL(/#home$/); await unchanged();
+  await login(page, 'henrique', process.env.FORJA_SEED_STUDENT_PASSWORD!); await expect(page).toHaveURL(/#home$/); await unchanged();
   await page.getByRole('button', { name: 'Sair da conta', exact: true }).click();
-  await login(page, 'professor', '123'); await expect(page).toHaveURL(/#professor\/dashboard$/);
+  await login(page, 'professor', process.env.FORJA_SEED_TEACHER_PASSWORD!); await expect(page).toHaveURL(/#professor\/dashboard$/);
   await expect(page.getByRole('heading', { name: 'Olá, Professor TatuGym.' })).toBeVisible();
   await page.goto('/#home'); await expect(page).toHaveURL(/#professor\/dashboard$/);
   await expect(page.locator('.dashboard-home')).toHaveCount(0); await unchanged();
@@ -81,14 +81,14 @@ test('development accounts preserve student progress, persist session, logout an
   await page.goBack(); await expect(page).toHaveURL(/#login$/);
   await expect(page.locator('.teacher-shell')).toHaveCount(0);
   await page.goto('/#professor/alunos'); await expect(page).toHaveURL(/#login$/);
-  await login(page, 'professor', '123'); await expect(page.getByRole('heading', { name: 'Olá, Professor TatuGym.' })).toBeVisible();
+  await login(page, 'professor', process.env.FORJA_SEED_TEACHER_PASSWORD!); await expect(page.getByRole('heading', { name: 'Olá, Professor TatuGym.' })).toBeVisible();
   expect(await page.evaluate(key => localStorage.getItem(key), teacherKey)).toBe(teacherData);
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator('.teacher-sidebar-bottom').getByRole('button', { name: 'Sair', exact: true })).toBeVisible();
   await teacherLogout(page);
   await page.goBack(); await expect(page).toHaveURL(/#login$/);
   await page.goto('/#professor/dashboard'); await expect(page).toHaveURL(/#login$/);
-  await login(page, 'professor2', '123'); await expect(page.getByRole('heading', { name: 'Olá, Professor 2.' })).toBeVisible();
+  await login(page, 'professor2', process.env.FORJA_SEED_TEACHER_PASSWORD!); await expect(page.getByRole('heading', { name: 'Olá, Professor 2.' })).toBeVisible();
   await teacherLogout(page); await unchanged();
   await page.reload(); await expect(page.getByRole('heading', { name: 'Acesse sua conta' })).toBeVisible();
 });

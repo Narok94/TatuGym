@@ -4,6 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  server: { proxy: { '/api': {target:`http://127.0.0.1:${process.env.FORJA_API_PORT||3001}`,changeOrigin:false} } },
+  preview: { proxy: { '/api': {target:`http://127.0.0.1:${process.env.FORJA_API_PORT||3001}`,changeOrigin:false} } },
   plugins: [
     react(),
     tailwindcss(),
@@ -43,8 +45,9 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        globPatterns: ["**/*.{js,css,html,svg,png,webp,woff2}"],
+        globPatterns: ["**/*.{js,css,html,svg,png,jpg,jpeg,webp,woff2}"],
         navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api\//],
       },
     }),
   ],

@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { localDate, STORAGE_KEY } from "../store";
+import { localDate } from "../store";
+import { readStudent,updateStudent } from '../persistence';
 import plateImage from "../assets/interface/anilha_checkin.png";
 
-const storageKey = `${STORAGE_KEY}:weekly-checkins`;
 const weekdays = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"];
 
 function readRecords(): Record<string, true> {
-  const raw = localStorage.getItem(storageKey);
-  if (!raw) return {};
-  const records: unknown = JSON.parse(raw);
+  const records: unknown = readStudent().checkins;
   if (!records || typeof records !== "object" || Array.isArray(records) ||
     Object.entries(records).some(([date, done]) => !/^\d{4}-\d{2}-\d{2}$/.test(date) || done !== true)) {
     throw new Error("Invalid check-ins");
@@ -36,9 +34,9 @@ export function WeeklyCheckIn({ today }: { today: Date }) {
   function toggle(day: string) {
     if (day > localDate()) return;
     try {
-      const next = readRecords();
+      const next = {...readRecords()};
       if (next[day]) delete next[day]; else next[day] = true;
-      localStorage.setItem(storageKey, JSON.stringify(next));
+      updateStudent(readStudent().data,next);
       setRecords(next);
       setError("");
     } catch {

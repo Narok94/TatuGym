@@ -35,15 +35,15 @@ export type PlanInput = Omit<TrainingPlan, "id" | "teacherId" | "updatedAt">;
 export type AssessmentInput = Omit<Assessment, "id" | "teacherId">;
 export type LibraryInput = Omit<LibraryExercise, "id" | "teacherId">;
 export interface TeacherRepository {
-  read(): TeacherSnapshot;
-  saveStudent(input: StudentInput, id?: string): string;
-  deleteStudent(id: string): void;
-  savePlan(input: PlanInput, id?: string): string;
-  deletePlan(id: string): void;
-  saveAssessment(input: AssessmentInput, id?: string): string;
-  deleteAssessment(id: string): void;
-  saveExercise(input: LibraryInput, id?: string): string;
-  deleteExercise(id: string): void;
-  saveProfile(input: TeacherProfile): void;
-  loadDemo(): void;
+  read(): Promise<TeacherSnapshot>;
+  saveStudent(input: StudentInput, id?: string): Promise<string>;
+  deleteStudent(id: string): Promise<void>;
+  savePlan(input: PlanInput, id?: string): Promise<string>;
+  deletePlan(id: string): Promise<void>;
+  saveAssessment(input: AssessmentInput, id?: string): Promise<string>;
+  deleteAssessment(id: string): Promise<void>;
+  saveExercise(input: LibraryInput, id?: string): Promise<string>;
+  deleteExercise(id: string): Promise<void>;
+  saveProfile(input: TeacherProfile): Promise<void>;
+  loadDemo(): Promise<void>;
 }

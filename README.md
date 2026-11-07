@@ -1,16 +1,15 @@
 # Meu Treino
 
-PWA pessoal de academia para Henrique, com React, TypeScript, Vite, Tailwind CSS e ícones Lucide. Os dados permanecem locais, sem backend ou banco de dados. Em desenvolvimento, o login FORJA simulado identifica aluno e professor; em produção, o aplicativo do aluno mantém o acesso existente, sem autenticação simulada.
+PWA de academia FORJA com React, TypeScript, Vite e PostgreSQL Neon. Login real, sessões por cookie HttpOnly e persistência no servidor funcionam em desenvolvimento e na Vercel. A tela de login e a identidade visual aprovadas foram preservadas.
 
-## Ambiente do professor (somente desenvolvimento)
-
-Execute `npm run dev` e abra `/#login`. Use **henrique / 9860** para o aplicativo atual do aluno, preservando seus registros, ou **professor / 123** para o painel do professor. **professor2 / 123** permite testar outro professor. O login usa a opção 3 aprovada: fundo de pesos, logo FORJA e painel preto com borda laranja. A sessão permanece na aba ao atualizar; sair retorna ao login. Dashboard, alunos, treinos, avaliações, evolução, relatórios, biblioteca e configurações do professor usam armazenamento local provisório. O acesso simulado e suas credenciais não existem no build de produção. Recuperação de senha, autenticação e permissões reais dependem do backend. Consulte [as etapas, arquivos e instruções de teste](docs/professor-desenvolvimento.md).
+Consulte [a integração Neon, migrations, tabelas, preservação de dados e publicação](docs/neon-forja.md). As contas são provisionadas por script seguro; senhas não são documentadas nem fixadas no frontend.
 
 ## Executar
 
 Requer Node.js 22.12+ (ou 24 LTS) e npm.
 
 ```sh
+vercel env pull .env.development.local --environment=development
 npm install
 npm run dev
 ```
@@ -24,15 +23,15 @@ npm run build
 npm run preview
 ```
 
-Abra http://localhost:4173. O build gera `dist/`, manifest, ícones PNG e service worker com precache dos arquivos locais. Para publicar, hospede `dist/` em um servidor estático com **HTTPS**, na raiz do domínio. O service worker é habilitado no build de produção; o modo de desenvolvimento usa os arquivos diretamente.
+Abra http://localhost:4173. O build gera `dist/`, manifest, ícones PNG e service worker com precache dos arquivos locais. Para publicar, envie o projeto completo à Vercel, incluindo `api/` e `server/`, com **HTTPS**. A API é necessária para autenticação e persistência. O service worker é habilitado no build de produção; o modo de desenvolvimento usa os arquivos diretamente.
 
-Após o primeiro carregamento completo online, o aplicativo de produção abre e funciona sem rede. Instalação e service worker exigem HTTPS (ou localhost). Um endereço HTTP de rede local não habilita instalação no iPhone. No Safari do iPhone: Compartilhar → Adicionar à Tela de Início. Nos navegadores compatíveis, há também a opção no Perfil.
+O service worker preserva os assets para instalação como PWA e não armazena respostas da API. Login e carregamento inicial exigem rede. Alterações feitas com a tela aberta ficam em uma cópia pendente até confirmação do servidor. Para testar `npm run preview`, mantenha a API local ativa conforme [a documentação](docs/neon-forja.md).
 
 ## O que está disponível
 
 - Entrada, dashboard com saudação dinâmica e sugestão sequencial de treinos A/B/C.
 - Fichas com cards e ilustrações anatômicas PNG locais, imagens dos exercícios compatíveis, grupos musculares e duração estimada. Consulte [o inventário de assets](docs/assets-integracao.md) para associações e arquivos sem uso.
-- Edição de nomes, séries, repetições, cargas e descanso do plano demonstrativo.
+- Edição de nomes, séries, repetições, cargas e descanso do plano do aluno.
 - Execução com um exercício por vez, ilustração anatômica, edição da série atual, confirmação protegida contra toques repetidos e avanço automático. Descanso circular inicia após concluir uma série, com pausar, retomar, pular e aviso visual/som/vibração quando disponíveis. Lista permite trocar livremente de exercício. Conclusão de todas as séries salva automaticamente no histórico.
 - Retomada do treino em andamento após recarregar, incluindo séries, rascunhos de carga/repetições e descanso baseado no horário real.
 - Refeições por horário, alimentos e quantidades editáveis, marcação diária opcional.
@@ -40,11 +39,11 @@ Após o primeiro carregamento completo online, o aplicativo de produção abre e
 - Temas claro, escuro e automático; exportação JSON e redefinição dos dados com confirmação.
 - Layout mobile-first, navegação inferior fixa, suporte a safe areas e desktop.
 
-Os exercícios e alimentos são dados demonstrativos para personalização. Não há fotos de alimentos, controle de água ou notificações ativas.
+Novas contas não recebem treinos fictícios. Os registros locais anteriores são importados após autenticação, sem substituição por exemplos. Não há fotos de alimentos, controle de água ou notificações ativas.
 
 ## Persistência e organização
 
-Todos os dados ficam no `localStorage` desta origem, sob `meu-treino:v1:henrique-local`. Outras portas, domínios, navegadores ou dispositivos têm armazenamento independente. Limpar os dados do site remove os registros. A exportação JSON é uma cópia para guardar; não há importação ou sincronização nesta versão.
+O Neon mantém os dados por conta. As chaves locais antigas ficam intactas como origem de migração, e alterações ainda não confirmadas têm cópia por usuário. Nenhum armazenamento é limpo durante a migração. Veja [o procedimento e o plano para conflitos](docs/neon-forja.md#preservação-e-migração-local).
 
 ```text
 src/
@@ -53,14 +52,14 @@ src/
   pages/       # início, fichas, execução, dieta, progresso e perfil
   App.tsx      # navegação por hash e coordenação dos fluxos
   data.ts      # plano e refeições demonstrativos
-  store.ts     # persistência local, datas e identificadores
+  store.ts     # estado sincronizado, datas e identificadores
   types.ts     # modelos TypeScript
   styles.css   # tokens visuais, temas, componentes e responsividade
 public/        # ícones locais, incluindo Apple Touch Icon e maskable
 ```
 
-O estado possui versão e identidade de usuário; o armazenamento é isolado por usuário. Isso prepara uma futura camada de contas e migração de dados sem implementar múltiplos usuários agora. Os registros de treino guardam uma cópia da ficha executada, preservando o histórico quando o plano é editado. Os assets preservam proporções, com PNGs originais mantidos e ilustrações de execução em WebP no precache para uso offline. O Perfil reserva um espaço para notificações futuras.
+O estado completo e as cópias históricas são preservados no servidor. A API valida permissões em todas as operações, e cada professor acessa somente seus alunos vinculados. Recuperação de senha e emissão de credenciais para novos cadastros de alunos continuam indisponíveis.
 
 ## Validação
 
-`npm test` executa os fluxos em Chromium e WebKit com viewport móvel. `npm run build` executa a checagem estrita do TypeScript e o build de produção. Os fluxos de séries, retomada após recarregar, descanso, histórico, refeições, peso e temas foram conferidos no navegador durante a implementação.
+`npm test` cria um schema Neon isolado e executa contratos de persistência e fluxos reais em Chromium e WebKit com viewport móvel. As tabelas de usuários reais não recebem fixtures. `npm run build` executa a checagem estrita do TypeScript e o build de produção. Os fluxos de séries, retomada após recarregar, descanso, histórico, refeições, peso e temas foram conferidos no navegador durante a implementação.

@@ -1,0 +1,14 @@
+import { z } from 'zod';
+const id = z.string().min(1).max(200);
+const text = z.string().max(5000);
+const nonempty = z.string().trim().min(1).max(200);
+const exercise = z.object({id, name:nonempty, sets:z.number().int().min(1).max(100), reps:nonempty, load:z.number().min(0).max(2000), rest:z.number().min(0).max(7200)}).passthrough();
+const workout = z.object({id,name:nonempty,exercises:z.array(exercise).max(500)}).passthrough();
+const session = z.object({id,workout,sets:z.array(z.object({exerciseId:id,setIndex:z.number().int().min(0),load:z.number().min(0),reps:z.number().min(0),completedAt:text}).passthrough()),startedAt:text}).passthrough();
+export const appData = z.object({version:z.literal(1),user:z.object({id,name:nonempty}),welcomed:z.boolean(),theme:z.enum(['light','dark','system']),workouts:z.array(workout).max(1000),meals:z.array(z.object({id,name:nonempty,time:text,foods:z.array(z.object({name:text,quantity:text}))}).passthrough()),mealLogs:z.record(z.string(),z.array(z.string())),activeSession:session.nullable(),history:z.array(session.extend({finishedAt:text})),weights:z.array(z.object({id,date:text,value:z.number().min(0).max(1000)}))}).passthrough();
+export const checkins = z.record(z.string().regex(/^\d{4}-\d{2}-\d{2}$/),z.literal(true));
+export const profile = z.object({name:nonempty,email:z.email().max(200),phone:text,specialty:text});
+export const student = z.object({name:nonempty,email:z.email().max(200),phone:text,birthDate:text,goal:text,status:z.enum(['ATIVO','INATIVO']),notes:text});
+export const plan = z.object({name:nonempty,studentId:z.string().max(200),description:text,status:z.enum(['ATIVO','RASCUNHO']),duration:z.number().min(1).max(600),exercises:z.array(exercise).min(1).max(500)});
+export const assessment = z.object({studentId:id,date:z.iso.date(),weight:z.number().min(10).max(500),height:z.number().min(50).max(250),waist:z.number().min(0).max(300).nullable(),hip:z.number().min(0).max(300).nullable(),bodyFat:z.number().min(0).max(100).nullable(),notes:text});
+export const library = z.object({name:nonempty,muscleGroup:nonempty,equipment:text,instructions:text,imageUrl:z.union([z.literal(''),z.url().refine(v=>/^https?:/.test(v))])});
