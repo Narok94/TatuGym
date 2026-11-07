@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import type { ReactNode } from "react";
 import {
   ArrowRight,
@@ -46,6 +46,32 @@ export default function App({ onLogout, localDataNotice }: {
   const [installPrompt, setInstallPrompt] = useState<InstallPrompt | null>(
     null,
   );
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+    const update = () => root.style.setProperty("--app-viewport-height", `${window.innerHeight}px`);
+    update();
+    let frame = window.requestAnimationFrame(update);
+    const schedule = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(update);
+    };
+    const visible = () => { if (document.visibilityState === "visible") schedule(); };
+    window.addEventListener("resize", schedule);
+    window.addEventListener("pageshow", schedule);
+    window.addEventListener("hashchange", schedule);
+    viewport?.addEventListener("resize", schedule);
+    document.addEventListener("visibilitychange", visible);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("pageshow", schedule);
+      window.removeEventListener("hashchange", schedule);
+      viewport?.removeEventListener("resize", schedule);
+      document.removeEventListener("visibilitychange", visible);
+      root.style.removeProperty("--app-viewport-height");
+    };
+  }, []);
   useEffect(() => {
     const updatePage = () => {
       setPage(readPage());

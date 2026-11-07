@@ -25,6 +25,7 @@
   --shadow: 0 6px 24px #15202b04;
   --nav: #ffffffed;
   --green: #268d72;
+  --app-top-inset: var(--safe-top, env(safe-area-inset-top, 0px));
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -142,7 +143,7 @@ strong {
   width: 100%;
 }
 .app-shell {
-  min-height: 100dvh;
+  min-height: var(--app-viewport-height, 100dvh);
   padding-bottom: 124px;
   position: relative;
   isolation: isolate;
@@ -1958,7 +1959,8 @@ select {
     display: none;
   }
   .bottom-nav {
-    bottom: 0;
+    top: calc(var(--app-viewport-height, 100dvh) - var(--mobile-nav-height));
+    bottom: auto;
     left: 0;
     transform: none;
     max-width: none;
@@ -1985,6 +1987,7 @@ select {
     top: -5px;
   }
   :root {
+    --app-top-inset: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 8px);
     --mobile-nav-inset: var(--safe-bottom, env(safe-area-inset-bottom, 0px));
     --mobile-nav-height: calc(49px + var(--mobile-nav-inset));
   }
@@ -2506,7 +2509,7 @@ img.anatomy {
 }
 /* Safe areas apply to the shell once, including installed iOS PWAs. */
 .app-shell {
-  padding-top: var(--safe-top, env(safe-area-inset-top, 0px));
+  padding-top: var(--app-top-inset);
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
   overflow-x: clip;
@@ -2609,7 +2612,7 @@ img.anatomy {
 @media (max-width: 760px) {
   .executing { padding-bottom: var(--mobile-nav-height); }
   .execution {
-    height: calc(100dvh - var(--safe-top, env(safe-area-inset-top, 0px)) - var(--mobile-nav-height) - 18px);
+    height: calc(var(--app-viewport-height, 100dvh) - var(--app-top-inset) - var(--mobile-nav-height) - 18px);
     min-height: 390px;
     display: grid;
     grid-template-rows: auto minmax(70px, 1fr) auto auto auto;
@@ -2652,7 +2655,7 @@ img.anatomy {
   .workout-summary-stats > span { font-size: 11px; }
   .workout-summary-row .button { padding: 0 10px; min-height: 44px; font-size: 11px; }
   .dashboard-home .hero-muscles { margin: auto 0 10px; }
-  .dashboard-home { height: 100dvh; padding-bottom: var(--mobile-nav-height); display: flex; flex-direction: column; --dashboard-gap: clamp(6px, 1.2dvh, 12px); }
+  .dashboard-home { height: var(--app-viewport-height, 100dvh); padding-bottom: var(--mobile-nav-height); display: flex; flex-direction: column; --dashboard-gap: clamp(6px, 1.2dvh, 12px); }
   .dashboard-home .topbar { width: 100%; margin: 0 auto; flex-shrink: 0; }
   .dashboard-home .main-content { padding: 6px 16px var(--dashboard-gap); width: 100%; flex: 1 0 auto; display: flex; flex-direction: column; }
   .dashboard-home .page-header { margin-bottom: var(--dashboard-gap); }
