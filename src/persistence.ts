@@ -1,4 +1,4 @@
-import { api } from './auth';
+import { api, ApiError } from './auth';
 import type { AuthSession } from './auth';
 import type { AppData,Workout } from './types';
 export const LEGACY_STUDENT_KEY='meu-treino:v1:henrique-local';
@@ -28,7 +28,7 @@ export function exportPreservedData(session:AuthSession) {
   const link=document.createElement('a');link.href=url;link.download='forja-dados-preservados.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 async function digest(value:string) {const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));return Array.from(new Uint8Array(bytes),x=>x.toString(16).padStart(2,'0')).join('');}
-export async function prepareData(session:AuthSession) {
+export async function prepareData(session:AuthSession): Promise<string | undefined> {
   if(session.role==='PROFESSOR') {
     const raw=localStorage.getItem(LEGACY_TEACHER_KEY);
     if(raw) {
@@ -46,15 +46,24 @@ export async function prepareData(session:AuthSession) {
   const raw=session.login==='henrique'?localStorage.getItem(LEGACY_STUDENT_KEY):null;
   const checkRaw=session.login==='henrique'?localStorage.getItem(`${LEGACY_STUDENT_KEY}:weekly-checkins`):null;
   state=await api<StudentState>('student');
+  let localDataNotice: string | undefined;
   if(raw || checkRaw) {
     const original={data:raw?JSON.parse(raw):state.data,checkins:checkRaw?JSON.parse(checkRaw):{}};
     const marker=`forja:migrated:${userId}:${await digest(JSON.stringify(original))}`;
     if(!localStorage.getItem(marker)) {
-      const receipt=await api<{alreadyImported?:boolean}>('import-student',original);
+      const receipt=await api<{alreadyImported?:boolean}>('import-student',original).catch((reason:unknown)=>{
+        if(reason instanceof ApiError && reason.status===409) return null;
+        throw reason;
+      });
       const verified=await api<StudentState>('student');
-      const expected={...original.data,user:{...original.data.user,id:userId}};
-      if(!receipt.alreadyImported && (canonical(expected)!==canonical(verified.data)||canonical(original.checkins)!==canonical(verified.checkins))) throw new Error('A verificação da transferência falhou. Os registros locais permanecem intactos.');
-      localStorage.setItem(marker,'verified');state=verified;
+      if(receipt) {
+        const expected={...original.data,user:{...original.data.user,id:userId}};
+        if(!receipt.alreadyImported && (canonical(expected)!==canonical(verified.data)||canonical(original.checkins)!==canonical(verified.checkins))) throw new Error('A verificação da transferência falhou. Os registros locais permanecem intactos.');
+        localStorage.setItem(marker,'verified');
+      } else {
+        localDataNotice='Você está vendo os dados da sua conta. Este dispositivo tem uma cópia antiga diferente, que foi preservada.';
+      }
+      state=verified;
     }
   }
   const pending=localStorage.getItem(pendingKey());
@@ -64,6 +73,7 @@ export async function prepareData(session:AuthSession) {
     else if(draft.revision===state.revision) {state=draft;generation++;await flushStudent();if(error) throw new Error(error);}
     else throw new Error('Há alterações locais pendentes e dados mais recentes no servidor. A cópia pendente foi preservada; exporte-a antes de conciliar.');
   }
+  return localDataNotice;
 }
 function canonical(value:unknown):string {
   if(Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;

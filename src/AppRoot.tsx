@@ -11,13 +11,18 @@ export default function AppRoot() {
   const [auth, setAuth] = useState<AuthService | null>(null);
   const [session, setSession] = useState<AuthSession | null>(null);
   const [error, setError] = useState("");
+  const [localDataNotice, setLocalDataNotice] = useState<string>();
   const [ready, setReady] = useState(false);
   useEffect(() => {
     let active = true;
     loadAuthService().then(async provider => {
       if (!active) return;
       setAuth(provider);
-      try { const next = await provider.refresh(); if (next) await prepareData(next); if(active) setSession(next); }
+      try {
+        const next = await provider.refresh();
+        const notice = next ? await prepareData(next) : undefined;
+        if(active) { setLocalDataNotice(notice); setSession(next); }
+      }
       catch(reason) { if(active) setError((reason as Error).message); }
       finally { if(active) setReady(true); }
     });
@@ -29,7 +34,11 @@ export default function AppRoot() {
       setRoute(location.hash);
       if(auth && event.persisted) {
         setReady(false);
-        try {const next=await auth.refresh();if(next) await prepareData(next);setSession(next);}
+        try {
+          const next = await auth.refresh();
+          setLocalDataNotice(next ? await prepareData(next) : undefined);
+          setSession(next);
+        }
         catch(reason) {setSession(null);setError((reason as Error).message);}
         finally {setReady(true);}
       }
@@ -55,11 +64,15 @@ export default function AppRoot() {
   };
   if (!session) return <>{error && <div className="storage-error"><p role="alert">{error}</p>{auth.readSession() && <button className="button secondary" onClick={()=>{const current=auth.readSession();if(current)exportPreservedData(current);}}>Exportar dados preservados</button>}</div>}<LoginScreen mode={auth.mode} onLogin={async (login, password) => {
     const next = await auth.login(login, password);
-    try {await prepareData(next);}catch(reason){setError((reason as Error).message);return;}
+    try {setLocalDataNotice(await prepareData(next));}catch(reason){setError((reason as Error).message);return;}
     setError(''); setSession(next);
     location.hash = next.role === "PROFESSOR" ? "professor/dashboard" : "home";
   }} /></>;
   return <>{error && <p role="alert" className="storage-error">{error}</p>}
+    {localDataNotice && <div className="offline-banner">
+      <p role="status">{localDataNotice}</p>
+      <button className="button secondary" onClick={()=>exportPreservedData(session)}>Exportar cópia local</button>
+    </div>}
     {session.role === "PROFESSOR"
       ? <Suspense fallback={<div role="status">Carregando…</div>}><TeacherApp key={session.userId} teacherId={session.teacherId} route={route} leave={leave} /></Suspense>
       : <App key={session.userId} onLogout={leave} />}

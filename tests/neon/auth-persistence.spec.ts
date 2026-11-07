@@ -1,4 +1,5 @@
 import { test,expect,type Page } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 import { createInitialData } from '../../src/data';
 const studentKey='meu-treino:v1:henrique-local';
 const teacherKey='tatugym:dev:teacher-workspace:v1';
@@ -104,4 +105,41 @@ test('real workout: sets and offline drafts persist without changing the legacy 
   const restored=await context.request.post('/api/forja?action=student',{data:{...baseline,revision:after.revision}});expect(restored.status()).toBe(200);
   await page.evaluate(()=>{location.hash='profile';});
   await page.getByRole('button',{name:'Sair da conta',exact:true}).click();await expect(page).toHaveURL(/#login$/);
+});
+
+test('login opens the account when an old local copy conflicts', async ({ page, request }) => {
+  const studentUrl = '/api/forja?action=student';
+  const authenticated = await request.post('/api/forja?action=login', {
+    data: { login: 'henrique', password: studentPassword },
+  });
+  expect(authenticated.ok()).toBe(true);
+  let saved = await (await request.get(studentUrl)).json();
+  if (!saved.revision) {
+    const data = createInitialData();
+    data.welcomed = true;
+    expect((await request.post(studentUrl, { data: { ...saved, data } })).ok()).toBe(true);
+    saved = await (await request.get(studentUrl)).json();
+  }
+
+  const local = createInitialData();
+  local.workouts[0].name = 'Cópia antiga deste celular';
+  const original = JSON.stringify(local);
+  await page.goto('/#login');
+  await page.evaluate(({ key, original }) => localStorage.setItem(key, original), { key: studentKey, original });
+  const conflict = page.waitForResponse(response => response.url().endsWith('action=import-student'));
+  await login(page, 'henrique', studentPassword);
+  expect((await conflict).status()).toBe(409);
+  await expect(page).toHaveURL(/#home$/);
+  await expect(page.getByRole('status').filter({ hasText: 'cópia antiga diferente' })).toBeVisible();
+  await page.goto('/#workouts');
+  await expect(page.getByRole('button', { name: `Abrir ${saved.data.workouts[0].name}`, exact: true })).toBeVisible();
+  const downloading = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Exportar cópia local' }).click();
+  const backup = JSON.parse(await readFile(await (await downloading).path(), 'utf8'));
+  expect(backup.records[studentKey]).toBe(original);
+  await page.reload();
+  await expect(page).toHaveURL(/#workouts$/);
+  await expect(page.getByRole('button', { name: 'Exportar cópia local' })).toBeVisible();
+  expect(await page.evaluate(key => localStorage.getItem(key), studentKey)).toBe(original);
+  expect(await (await request.get(studentUrl)).json()).toEqual(saved);
 });

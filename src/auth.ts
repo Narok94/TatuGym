@@ -8,11 +8,14 @@ export interface AuthService {
   logout():Promise<void>;
 }
 export const AUTH_UNAVAILABLE='Não foi possível conectar ao servidor. Tente novamente.';
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
 let current:AuthSession|null=null;
 export async function api<T>(action:string,input?:unknown):Promise<T> {
   const response=await fetch(`/api/forja?action=${action}`,{method:input===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',headers:input===undefined?{}:{'Content-Type':'application/json'},body:input===undefined?undefined:JSON.stringify(input)});
   const value=await response.json().catch(()=>({error:AUTH_UNAVAILABLE}));
-  if(!response.ok) {if(response.status===401 && action!=='login') {current=null;window.dispatchEvent(new Event('forja:expired'));} throw new Error(value.error||AUTH_UNAVAILABLE);}
+  if(!response.ok) {if(response.status===401 && action!=='login') {current=null;window.dispatchEvent(new Event('forja:expired'));} throw new ApiError(value.error||AUTH_UNAVAILABLE,response.status);}
   return value;
 }
 const service:AuthService={
