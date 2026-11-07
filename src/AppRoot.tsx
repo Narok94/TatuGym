@@ -69,12 +69,13 @@ export default function AppRoot() {
     location.hash = next.role === "PROFESSOR" ? "professor/dashboard" : "home";
   }} /></>;
   return <>{error && <p role="alert" className="storage-error">{error}</p>}
-    {localDataNotice && <div className="offline-banner">
-      <p role="status">{localDataNotice}</p>
-      <button className="button secondary" onClick={()=>exportPreservedData(session)}>Exportar cópia local</button>
-    </div>}
     {session.role === "PROFESSOR"
       ? <Suspense fallback={<div role="status">Carregando…</div>}><TeacherApp key={session.userId} teacherId={session.teacherId} route={route} leave={leave} /></Suspense>
-      : <App key={session.userId} onLogout={leave} />}
+      : <App key={session.userId} onLogout={leave} localDataNotice={localDataNotice && (
+        <div className="offline-banner local-data-notice">
+          <p role="status">{localDataNotice}</p>
+          <button className="button secondary" onClick={()=>exportPreservedData(session)}>Exportar cópia local</button>
+        </div>
+      )} />}
   </>;
 }

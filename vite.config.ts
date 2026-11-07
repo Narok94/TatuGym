@@ -13,9 +13,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg", "apple-touch-icon.png"],
       manifest: {
-        name: "Meu Treino",
-        short_name: "Meu Treino",
-        description: "Seu treino. Seu ritmo. Sua evolução.",
+        name: "FORJA",
+        short_name: "FORJA",
+        description: "Sua evolução é construída.",
         lang: "pt-BR",
         start_url: "/",
         scope: "/",

@@ -18,9 +18,18 @@
     />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <title>Meu Treino — Seu próximo passo</title>
+    <title>FORJA — Sua evolução é construída</title>
   </head>
   <body>
+    <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+      <filter id="exercise-matte" color-interpolation-filters="sRGB">
+        <!-- Key out the dark backdrop by luminance, leaving the image bounds intact. -->
+        <feColorMatrix values="1 0 0 0 0
+                               0 1 0 0 0
+                               0 0 1 0 0
+                               3.19 10.73 1.08 0 -0.69" />
+      </filter>
+    </svg>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import {
   Bell,
   Check,
@@ -14,7 +15,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { AppData, Theme } from "../types";
-import { Modal, PageHeader, RowLink, SectionTitle } from "../components/UI";
+import { Brand, Modal, PageHeader, RowLink, SectionTitle } from "../components/UI";
 
 export default function Profile({
   data,
@@ -23,6 +24,7 @@ export default function Profile({
   reset,
   install,
   onLogout,
+  localDataNotice,
 }: {
   data: AppData;
   setTheme: (theme: Theme) => void;
@@ -30,6 +32,7 @@ export default function Profile({
   reset: () => void;
   install?: () => void;
   onLogout?: () => void;
+  localDataNotice?: ReactNode;
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [installHelp, setInstallHelp] = useState(false);
@@ -39,7 +42,7 @@ export default function Profile({
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = `meu-treino-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `forja-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
@@ -50,6 +53,7 @@ export default function Profile({
         title="Meu perfil"
         description="Uma rotina com a sua identidade."
       />
+      {localDataNotice}
       <div className="profile-grid">
         <div>
           <section className="panel profile-card">
@@ -155,7 +159,7 @@ export default function Profile({
         </div>
       </div>
       <p className="app-version">
-        MEU TREINO <span>·</span> VERSÃO 1.0 <span>·</span> FEITO PARA EVOLUIR
+        <Brand /> <span>·</span> VERSÃO 1.0 <span>·</span> FEITO PARA EVOLUIR
       </p>
       {confirmReset && (
         <Modal

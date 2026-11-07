@@ -130,15 +130,16 @@ test('login opens the account when an old local copy conflicts', async ({ page, 
   await login(page, 'henrique', studentPassword);
   expect((await conflict).status()).toBe(409);
   await expect(page).toHaveURL(/#home$/);
-  await expect(page.getByRole('status').filter({ hasText: 'cópia antiga diferente' })).toBeVisible();
   await page.goto('/#workouts');
   await expect(page.getByRole('button', { name: `Abrir ${saved.data.workouts[0].name}`, exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'cópia antiga diferente' })).toBeVisible();
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Exportar cópia local' }).click();
   const backup = JSON.parse(await readFile(await (await downloading).path(), 'utf8'));
   expect(backup.records[studentKey]).toBe(original);
   await page.reload();
-  await expect(page).toHaveURL(/#workouts$/);
+  await expect(page).toHaveURL(/#profile$/);
   await expect(page.getByRole('button', { name: 'Exportar cópia local' })).toBeVisible();
   expect(await page.evaluate(key => localStorage.getItem(key), studentKey)).toBe(original);
   expect(await (await request.get(studentUrl)).json()).toEqual(saved);

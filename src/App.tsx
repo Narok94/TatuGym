@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import {
   ArrowRight,
   Check,
@@ -27,7 +28,10 @@ interface InstallPrompt extends Event {
   userChoice: Promise<{ outcome: string }>;
 }
 const readPage = () => location.hash.slice(1) || "home";
-export default function App({ onLogout }: { onLogout?: () => void } = {}) {
+export default function App({ onLogout, localDataNotice }: {
+  onLogout?: () => void;
+  localDataNotice?: ReactNode;
+} = {}) {
   const { data, setData, storageError } = useAppData();
   const [page, setPage] = useState(readPage);
   const [offline, setOffline] = useState(!navigator.onLine);
@@ -202,7 +206,7 @@ export default function App({ onLogout }: { onLogout?: () => void } = {}) {
           </div>
         </div>
         <div className="welcome-bottom">
-          <span>MEU TREINO © {new Date().getFullYear()}</span>
+          <span className="welcome-copyright"><Brand /> © {new Date().getFullYear()}</span>
           <span>CONSTÂNCIA TRANSFORMA.</span>
         </div>
       </main>
@@ -213,7 +217,7 @@ export default function App({ onLogout }: { onLogout?: () => void } = {}) {
         <button
           className="brand-button"
           onClick={() => navigate("home")}
-          aria-label="Meu Treino — Início"
+          aria-label="FORJA — Início"
         >
           <Brand />
         </button>
@@ -309,6 +313,7 @@ export default function App({ onLogout }: { onLogout?: () => void } = {}) {
         ) : page === "profile" ? (
           <Profile
             data={data}
+            localDataNotice={localDataNotice}
             onLogout={onLogout}
             navigate={navigate}
             setTheme={(theme) => setData((d) => ({ ...d, theme }))}

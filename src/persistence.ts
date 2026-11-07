@@ -61,7 +61,7 @@ export async function prepareData(session:AuthSession): Promise<string | undefin
         if(!receipt.alreadyImported && (canonical(expected)!==canonical(verified.data)||canonical(original.checkins)!==canonical(verified.checkins))) throw new Error('A verificação da transferência falhou. Os registros locais permanecem intactos.');
         localStorage.setItem(marker,'verified');
       } else {
-        localDataNotice='Você está vendo os dados da sua conta. Este dispositivo tem uma cópia antiga diferente, que foi preservada.';
+        localDataNotice='Dados da conta em uso. Cópia antiga diferente preservada.';
       }
       state=verified;
     }

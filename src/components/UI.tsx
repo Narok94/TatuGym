@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
+import forjaLogo from "../assets/logo_forja_transparente.png";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -13,17 +14,7 @@ import {
 } from "lucide-react";
 
 export function Brand() {
-  return (
-    <div className="brand">
-      <span className="brand-mark">
-        <Dumbbell size={22} />
-      </span>
-      <span>
-        meu<span className="brand-light">treino</span>
-        <i />
-      </span>
-    </div>
-  );
+  return <img className="brand" src={forjaLogo} alt="FORJA" />;
 }
 export function PageHeader({
   eyebrow,
