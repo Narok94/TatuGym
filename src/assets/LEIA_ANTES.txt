@@ -1,6 +1,0 @@
-FORJA | Protótipo de imagens ABC
-
-40 recortes separados do painel aprovado, organizados por treino.
-ATENÇÃO: não são imagens definitivas de alta resolução. Cada posição possui cerca de 165–190 pixels de largura, insuficiente para ampliação na tela de execução.
-Os recortes não corrigem deformações de mãos, braços, aparelhos ou posições incorretas eventualmente presentes na imagem gerada. Revise individualmente antes de usar como instrução de treino.
-Não aplicar upscale artificial e não substituir as imagens definitivas sem revisão.
