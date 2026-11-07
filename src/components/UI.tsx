@@ -5,7 +5,6 @@ import forjaLogo from "../assets/logo_forja_transparente.png";
 import {
   ArrowLeft,
   ArrowUpRight,
-  Check,
   ChevronRight,
   Dumbbell,
   Home,
@@ -151,44 +150,6 @@ export function Modal({
         {children}
       </div>
     </dialog>
-  );
-}
-export function ProgressRing({
-  value,
-  total,
-  label,
-  icon,
-}: {
-  value: number;
-  total: number;
-  label: string;
-  icon: ReactNode;
-}) {
-  const percent = total ? Math.min(1, value / total) : 0;
-  return (
-    <div className="progress-stat">
-      <div className="mini-ring">
-        <svg viewBox="0 0 90 90" aria-hidden="true">
-          <circle cx="45" cy="45" r="37" className="ring-track" />
-          <circle
-            cx="45"
-            cy="45"
-            r="37"
-            className="ring-value"
-            strokeDasharray={`${percent * 232.48} 232.48`}
-          />
-        </svg>
-        <span>{icon}</span>
-      </div>
-      <div>
-        <strong>
-          {value}
-          <span> / {total}</span>
-        </strong>
-        <p>{label}</p>
-      </div>
-      {percent === 1 && <Check size={18} className="success" />}
-    </div>
   );
 }
 export function EmptyState({

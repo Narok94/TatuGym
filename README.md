@@ -1,4 +1,4 @@
-# Meu Treino
+# FORJA
 
 PWA de academia FORJA com React, TypeScript, Vite e PostgreSQL Neon. Login real, sessões por cookie HttpOnly e persistência no servidor funcionam em desenvolvimento e na Vercel. A tela de login e a identidade visual aprovadas foram preservadas.
 
@@ -31,9 +31,9 @@ O service worker preserva os assets para instalação como PWA e não armazena r
 
 - Entrada, dashboard com saudação dinâmica e sugestão sequencial de treinos A/B/C.
 - Fichas com cards e ilustrações anatômicas PNG locais, imagens dos exercícios compatíveis, grupos musculares e duração estimada. Consulte [o inventário de assets](docs/assets-integracao.md) para associações e arquivos sem uso.
-- Edição de nomes, séries, repetições, cargas e descanso do plano do aluno.
+- Edição de cargas e repetições durante a execução, com planos gerenciados pelo professor.
 - Execução com um exercício por vez, ilustração anatômica, edição da série atual, confirmação protegida contra toques repetidos e avanço automático. Descanso circular inicia após concluir uma série, com pausar, retomar, pular e aviso visual/som/vibração quando disponíveis. Lista permite trocar livremente de exercício. Conclusão de todas as séries salva automaticamente no histórico.
-- Retomada do treino em andamento após recarregar, incluindo séries, rascunhos de carga/repetições e descanso baseado no horário real.
+- Retomada do treino em andamento após recarregar, incluindo séries, rascunhos de carga/repetições e descanso baseado no horário real. O cronômetro total acompanha a execução e o histórico mostra a duração de cada treino e a soma dos treinos concluídos no dia.
 - Refeições por horário, alimentos e quantidades editáveis, marcação diária opcional.
 - Histórico de treinos e cargas, peso por data e gráfico das últimas 14 medições. Todos os registros de peso permanecem disponíveis na lista.
 - Temas claro, escuro e automático; exportação JSON e redefinição dos dados com confirmação.

@@ -47,16 +47,9 @@
 .teacher-chart svg { display: block; width: 100%; height: auto; max-height: 260px; }
 .teacher-error { border: 1px solid #ff835d44; border-radius: 10px; background: #7e30172b; color: #ffbba3; padding: 12px; font-size: 12px; margin-bottom: 12px; }
 .teacher-error .button { margin-left: 12px; }
-.teacher-login { min-height: 100dvh; display: grid; place-items: center; padding: calc(24px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(#0008, #0009), url('../assets/papeldeparede.png') center / cover; }
-.teacher-login-card { width: 100%; max-width: 460px; padding: 30px; background: #121b20ed; border: 1px solid #ffffff1a; border-radius: 22px; }
-.teacher-login-card .brand { margin-bottom: 30px; }
-.teacher-login-card h1 { font-size: 29px; }
-.teacher-login-card > p:not(.teacher-kicker) { color: #a6b1b8; font-size: 12px; line-height: 1.7; margin-top: 14px; }
-.teacher-login-card form { margin-top: 24px; }
 .teacher-scope label { color: #c3cdd3; font-size: 12px; }
 .teacher-scope input, .teacher-scope select, .teacher-scope textarea { background: #10181d; color: #f2f4f5; border: 1px solid #34424a; width: 100%; min-width: 0; border-radius: 9px; }
 .teacher-scope input:focus, .teacher-scope select:focus, .teacher-scope textarea:focus { outline-color: #ff822f; }
-.teacher-login-card a { display: inline-block; color: #ff9b59; margin-top: 18px; font-size: 12px; }
 .teacher-menu-button { display: none; }
 .teacher-scope .button { text-decoration: none; }
 .teacher-scope .button.secondary { background: #202b32; border: 1px solid #3a474f; color: #e2e7ea; }
@@ -133,6 +126,5 @@
   .teacher-stat strong { font-size: 26px; }
   .teacher-stat span { font-size: 10px; }
   .teacher-welcome h2 { font-size: 23px; }
-  .teacher-login-card { padding: 24px; }
 }
 @media print { .teacher-sidebar, .teacher-topbar, .teacher-local-notice, .teacher-print-hide { display: none !important; } .teacher-shell.app-shell { display: block; } .teacher-content { padding: 0; } .teacher-panel { break-inside: avoid; } }

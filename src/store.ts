@@ -1,8 +1,7 @@
 import { useCallback,useEffect,useState } from 'react';
 import type { SetStateAction } from 'react';
 import type { AppData } from './types';
-import { LEGACY_STUDENT_KEY,viewStudent,updateStudent,persistenceError } from './persistence';
-export const STORAGE_KEY=LEGACY_STUDENT_KEY;
+import { viewStudent,updateStudent,persistenceError } from './persistence';
 export const localDate=(date=new Date())=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 export const uid=()=>crypto.randomUUID();
 export function useAppData() {

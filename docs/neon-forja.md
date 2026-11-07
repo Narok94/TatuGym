@@ -76,7 +76,7 @@ npm test
 
 `npm test` cria um schema `forja_test_<timestamp>_<id>` no mesmo Neon, com senhas de teste aleatórias, aplica migrations e executa contratos de persistência e fluxos reais em Chromium/WebKit. O schema não pode ser selecionado na Vercel. Testes nunca usam as tabelas `forja` de usuários reais. Os schemas de teste desta entrega foram mantidos, pois nenhuma operação destrutiva foi autorizada.
 
-Os contratos verificam preservação de sessões em andamento, rascunhos, histórico, refeições, pesos, IDs, datas, importação idempotente, conflitos, isolamento e arquivamento. Os testes de navegador verificam login inválido/válido, cookies, recarga, check-ins persistidos, logout, URLs diretas, origem estrangeira e planos vinculados. As specs antigas baseadas em autenticação simulada permanecem como referência; o runner atual usa `tests/neon` e `tests/server-contract.test.mjs`.
+Os contratos verificam preservação de sessões em andamento, rascunhos, histórico, refeições, pesos, IDs, datas, importação idempotente, conflitos, isolamento e arquivamento. Os testes de navegador verificam login inválido/válido, cookies, recarga, check-ins persistidos, logout, URLs diretas, origem estrangeira, planos vinculados, imagens dos exercícios, cronômetro e navegação móvel. O runner usa `tests/neon` e `tests/server-contract.test.mjs`.
 
 `scripts/verify-vercel.mjs <URL>` permite verificar login/sessão/logout e permissões na hospedagem, usando senhas fornecidas exclusivamente por variáveis `FORJA_VERIFY_*_PASSWORD`. Não escreve treinos ou avaliações. Os arquivos temporários de cookies criados pelo próprio processo são removidos ao terminar.
 

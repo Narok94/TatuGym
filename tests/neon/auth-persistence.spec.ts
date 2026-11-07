@@ -185,6 +185,8 @@ test('total workout time survives navigation and reload and appears in history',
       await nav.getByRole('button', { name: label, exact: true }).click();
       await checkNav();
     }
+    await nav.getByRole('button', { name: 'Treinos', exact: true }).click();
+    await page.getByRole('button', { name: 'Abrir Treino A', exact: true }).click();
     await page.getByRole('button', { name: 'Iniciar treino', exact: true }).click();
     const elapsed = page.getByRole('timer', { name: 'Tempo total de treino', exact: true });
     await expect(elapsed).toContainText('00:00:00');

@@ -1,5 +1,4 @@
 export interface TeacherIdentity { id: string; login: string; name: string; email: string }
-export interface TeacherSession { role: "PROFESSOR"; teacherId: string }
 export interface TeacherProfile { name: string; email: string; phone: string; specialty: string }
 export interface Student {
   id: string; teacherId: string; role: "ALUNO"; name: string; email: string; phone: string;
@@ -26,10 +25,6 @@ export interface TeacherSnapshot {
   profile: TeacherProfile; students: Student[]; plans: TrainingPlan[];
   assessments: Assessment[]; library: LibraryExercise[]; activities: Activity[];
 }
-export interface TeacherDatabase {
-  version: 1; profiles: Record<string, TeacherProfile>; students: Student[]; plans: TrainingPlan[];
-  assessments: Assessment[]; library: LibraryExercise[]; activities: Activity[];
-}
 export type StudentInput = Omit<Student, "id" | "teacherId" | "role" | "createdAt">;
 export type PlanInput = Omit<TrainingPlan, "id" | "teacherId" | "updatedAt">;
 export type AssessmentInput = Omit<Assessment, "id" | "teacherId">;
@@ -45,5 +40,4 @@ export interface TeacherRepository {
   saveExercise(input: LibraryInput, id?: string): Promise<string>;
   deleteExercise(id: string): Promise<void>;
   saveProfile(input: TeacherProfile): Promise<void>;
-  loadDemo(): Promise<void>;
 }

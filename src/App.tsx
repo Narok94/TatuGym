@@ -9,13 +9,13 @@ import {
   ShieldCheck,
   WifiOff,
 } from "lucide-react";
-import type { Exercise, Meal, Session as SessionType, Workout } from "./types";
+import type { Meal, Session as SessionType, Workout } from "./types";
 import { isComplete, previousDrafts, selectExercise, signalRestEnd } from "./sessionLogic";
 import { createInitialData } from "./data";
 import { localDate, uid, useAppData } from "./store";
 import { Anatomy } from "./components/Anatomy";
 import { BottomNav, Brand, Modal } from "./components/UI";
-import { ExerciseEditor, MealEditor } from "./components/Editors";
+import { MealEditor } from "./components/Editors";
 import Home from "./pages/Home";
 import { WorkoutDetails, Workouts } from "./pages/Workouts";
 import Session from "./pages/Session";
@@ -35,7 +35,6 @@ export default function App({ onLogout, localDataNotice }: {
   const { data, setData, storageError } = useAppData();
   const [page, setPage] = useState(readPage);
   const [offline, setOffline] = useState(!navigator.onLine);
-  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const [finishModal, setFinishModal] = useState(false);
   const [startConflict, setStartConflict] = useState<Workout | null>(null);
@@ -349,24 +348,6 @@ export default function App({ onLogout, localDataNotice }: {
       </main>
       <BottomNav page={page} navigate={navigate} />
       {restNotice && <div className="rest-notice" role="status">Descanso concluído. Pronto para a próxima série!</div>}
-      {editingExercise && (
-        <ExerciseEditor
-          exercise={editingExercise}
-          onClose={() => setEditingExercise(null)}
-          onSave={(exercise) => {
-            setData((d) => ({
-              ...d,
-              workouts: d.workouts.map((w) => ({
-                ...w,
-                exercises: w.exercises.map((e) =>
-                  e.id === exercise.id ? exercise : e,
-                ),
-              })),
-            }));
-            setEditingExercise(null);
-          }}
-        />
-      )}
       {editingMeal && (
         <MealEditor
           meal={editingMeal}
