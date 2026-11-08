@@ -7,9 +7,9 @@ import {
 } from "lucide-react";
 import type { Workout } from "../types";
 import { ExerciseImage } from "../components/ExerciseImage";
-import treinoA from "../assets/cards/treino_a.png";
-import treinoB from "../assets/cards/treino_b.png";
-import treinoC from "../assets/cards/treino_c.png";
+import treinoA from "../assets/cards/treino_a.webp";
+import treinoB from "../assets/cards/treino_b.webp";
+import treinoC from "../assets/cards/treino_c.webp";
 import { PageHeader, SectionTitle } from "../components/UI";
 
 const workoutCards: Record<string, string> = { a: treinoA, b: treinoB, c: treinoC };

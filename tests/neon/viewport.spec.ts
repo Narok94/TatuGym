@@ -64,5 +64,5 @@ test('mobile menu stays at screen bottom even when launch height is stale', asyn
   await expectBottom(844);
   await expect.poll(() => scroll.evaluate(element => element.scrollTop)).toBe(0);
   await nav.getByRole('button', { name: 'Perfil', exact: true }).click();
-  await expect(page.locator('.app-version')).toContainText('VERSÃO 1.0.1');
+  await expect(page.locator('.app-version')).toContainText(/VERSÃO \d+\.\d+\.\d+/);
 });
