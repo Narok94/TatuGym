@@ -1,19 +1,15 @@
 import { useEffect, useState } from "react";
 import {
-  ArrowRight,
   ArrowUpRight,
   Check,
   ChevronRight,
   Clock3,
-  Dumbbell,
-  Play,
   Sparkles,
   Utensils,
 } from "lucide-react";
 import type { AppData, Workout } from "../types";
 import { localDate } from "../store";
-import { formatWorkoutDuration, workoutElapsedSeconds } from "../workoutTime";
-import { Anatomy } from "../components/Anatomy";
+import { WorkoutHighlight } from "../components/WorkoutHighlight";
 import { WeeklyCheckIn } from "../components/WeeklyCheckIn";
 import {
   PageHeader,
@@ -64,42 +60,8 @@ export default function Home({
       <div className="dashboard-grid">
         <div className="dashboard-main">
           <WeeklyCheckIn today={now} />
-          {workout ? <section className="hero-workout">
-            <Anatomy group={workout.muscle} />
-            <div className="hero-content">
-              <span className="pill">
-                <span className="pulse-dot" />
-                {data.activeSession
-                  ? "Treino em andamento"
-                  : "SEU PRÓXIMO TREINO"}
-              </span>
-              <p className="hero-kicker">Hoje é dia de superar.</p>
-              <h2>{workout.name}</h2>
-              <div className="hero-meta">
-                <span>
-                  <Dumbbell size={14} />
-                  {workout.exercises.length} exercícios
-                </span>
-                <span>
-                  <Clock3 size={14} />{data.activeSession
-                    ? `Tempo ${formatWorkoutDuration(workoutElapsedSeconds(data.activeSession, now.getTime()))}`
-                    : `~${workout.duration} min`}
-                </span>
-              </div>
-              <div className="hero-muscles" aria-label="Músculos trabalhados">
-                <span className="hero-muscles-caption">MÚSCULOS TRABALHADOS</span>
-                <ul>{workout.groups.map(group => <li key={group}>{group}</li>)}</ul>
-              </div>
-              <button className="button primary" onClick={() => start(workout)}>
-                <Play size={17} fill="currentColor" />
-                {data.activeSession ? "Continuar treino" : "Iniciar treino"}
-                <ArrowRight size={18} />
-              </button>
-            </div>
-            <span className="hero-number">
-              0{workout.id === "a" ? "1" : workout.id === "b" ? "2" : "3"}
-            </span>
-          </section> : <section className="hero-workout"><div className="hero-content"><h2>Seus treinos</h2><p>Seus registros locais serão importados ao entrar no navegador em que foram salvos. Os treinos vinculados pelo professor também aparecerão aqui.</p></div></section>}
+          {workout ? <WorkoutHighlight workout={workout} session={data.activeSession} now={now.getTime()} start={start} />
+            : <section className="hero-workout"><div className="hero-content"><h2>Seus treinos</h2><p>Seus registros locais serão importados ao entrar no navegador em que foram salvos. Os treinos vinculados pelo professor também aparecerão aqui.</p></div></section>}
         </div>
         <aside className="dashboard-aside">
           <SectionTitle title="No seu ritmo" />

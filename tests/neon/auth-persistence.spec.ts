@@ -195,7 +195,7 @@ test('total workout time survives navigation and reload and appears in history',
     await page.clock.fastForward(65000);
     await expect(elapsed).toContainText('00:01:05');
     await nav.getByRole('button', { name: 'Início', exact: true }).click();
-    await expect(page.getByText('Tempo 00:01:05', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Tempo de treino decorrido', { exact: true })).toHaveText('00:01:05');
     await page.reload();
     await page.getByRole('button', { name: 'Continuar treino', exact: true }).click();
     await expect(elapsed).toContainText('00:01:05');
