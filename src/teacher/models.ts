@@ -6,7 +6,7 @@ export interface Student {
 }
 export interface PlanExercise {
   id: string; name: string; muscleGroup: string; sets: number; reps: string; load: number;
-  rest: number; instructions: string; libraryId?: string;
+  rest: number; instructions: string; libraryId?: string; imageUrl?: string; unit?: "reps" | "seconds";
 }
 export interface TrainingPlan {
   id: string; teacherId: string; studentId: string; name: string; description: string;
@@ -18,7 +18,7 @@ export interface Assessment {
 }
 export interface LibraryExercise {
   id: string; teacherId: string; name: string; muscleGroup: string; equipment: string;
-  instructions: string; imageUrl: string;
+  instructions: string; imageUrl: string; unit?: "reps" | "seconds"; defaultReps?: string;
 }
 export interface Activity { id: string; teacherId: string; title: string; at: string }
 export interface TeacherSnapshot {

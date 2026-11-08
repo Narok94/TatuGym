@@ -275,7 +275,7 @@ export default function Progress({
                               <p key={s.setIndex}>
                                 Série {s.setIndex + 1}
                                 <strong>
-                                  {s.reps} rep · {s.load} kg
+                                  {s.reps} {e.unit === 'seconds' ? 's' : 'rep'} · {s.load} kg
                                 </strong>
                               </p>
                             ))}

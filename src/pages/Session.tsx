@@ -78,18 +78,18 @@ export default function Session({ session, history, update, back, finish }: {
       </div>
     </header>
     <div className="execution-art">
-      <ExerciseImage name={exercise.name} className="execution-image" />
+      <ExerciseImage name={exercise.name} imageUrl={exercise.imageUrl} className="execution-image" />
       <button className="execution-icon previous" disabled={currentExercise === 0} aria-label="Exercício anterior" onClick={() => move(currentExercise - 1)}><ChevronLeft /></button>
       <button className="execution-icon next" disabled={currentExercise === workout.exercises.length - 1} aria-label="Próximo exercício" onClick={() => move(currentExercise + 1)}><ChevronRight /></button>
     </div>
     <div className="execution-values" key={key}>
-      <label><input aria-label="Repetições da série atual" type="number" inputMode="numeric" min="1" max="999" step="1" disabled={index === undefined} value={emptyField === `${key}:reps` || Number.isNaN(values.reps) ? "" : values.reps}
+      <label><input aria-label={exercise.unit === 'seconds' ? 'Segundos da série atual' : 'Repetições da série atual'} type="number" inputMode="numeric" min="1" max="999" step="1" disabled={index === undefined} value={emptyField === `${key}:reps` || Number.isNaN(values.reps) ? "" : values.reps}
         onFocus={e => { if (e.currentTarget.value === "0") draft("reps", ""); else e.currentTarget.select(); }}
-        onBlur={() => setEmptyField(null)} onChange={e => draft("reps", e.target.value)} /><span>repetições <small>alvo {exercise.reps}</small></span></label>
+        onBlur={() => setEmptyField(null)} onChange={e => draft("reps", e.target.value)} /><span>{exercise.unit === 'seconds' ? 'segundos' : 'repetições'} <small>alvo {exercise.reps}</small></span></label>
       <label><input aria-label="Carga da série atual em kg" type="number" inputMode="decimal" min="0" max="1000" step="0.5" disabled={index === undefined} value={emptyField === `${key}:load` || Number.isNaN(values.load) ? "" : values.load}
         onFocus={e => { if (e.currentTarget.value === "0") draft("load", ""); else e.currentTarget.select(); }}
         onBlur={() => setEmptyField(null)} onChange={e => draft("load", e.target.value)} /><span>kg</span></label>
-      {previous && <small className="execution-previous">Última execução: {previous.reps} repetições · {previous.load.toLocaleString("pt-BR")} kg</small>}
+      {previous && <small className="execution-previous">Última execução: {previous.reps} {exercise.unit === 'seconds' ? 'segundos' : 'repetições'} · {previous.load.toLocaleString("pt-BR")} kg</small>}
     </div>
     <div className="execution-rest">
       <div className="execution-timer">
@@ -110,7 +110,7 @@ export default function Session({ session, history, update, back, finish }: {
     </footer>
     {showList && <Modal title="Exercícios do treino" onClose={() => setShowList(false)}>
       <div className="execution-list">{workout.exercises.map((e, i) => <button key={e.id} aria-current={i === currentExercise ? "step" : undefined} onClick={() => move(i)}>
-        <ExerciseImage name={e.name} /><span>{e.name}</span><small>{session.sets.filter(s => s.exerciseId === e.id).length}/{e.sets}</small>{nextSet(session, i) === undefined && <Check size={16} />}
+        <ExerciseImage name={e.name} imageUrl={e.imageUrl} /><span>{e.name}</span><small>{session.sets.filter(s => s.exerciseId === e.id).length}/{e.sets}</small>{nextSet(session, i) === undefined && <Check size={16} />}
       </button>)}</div>
       <button className="button secondary full-width" onClick={() => { setShowList(false); finish(); }}>Finalizar treino agora</button>
     </Modal>}

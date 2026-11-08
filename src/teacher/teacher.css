@@ -81,13 +81,25 @@
 .teacher-evolution-stats small { display: block; color: #97a5ad; font-size: 10px; margin-bottom: 8px; }
 .teacher-evolution-stats strong { font-size: 20px; }
 .teacher-library-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.teacher-library-item { display: grid; grid-template-columns: 60px minmax(0, 1fr); align-content: start; gap: 12px; border: 1px solid #ffffff12; border-radius: 12px; padding: 16px; }
+.teacher-library-item { display: grid; grid-template-columns: 108px minmax(0, 1fr); align-content: start; gap: 12px; border: 1px solid #ffffff12; border-radius: 12px; padding: 16px; }
 .teacher-library-item h2 { margin-bottom: 8px; }
 .teacher-library-item p { font-size: 11px; color: #9aa7af; line-height: 1.7; margin-top: 9px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .teacher-library-item small { font-size: 10px; color: #ffb87c; display: block; margin-top: 8px; }
 .teacher-library-item > .teacher-row-actions { grid-column: 2; justify-content: flex-end; }
-.teacher-exercise-thumbnail { display: grid; place-items: center; background: #253139; border-radius: 10px; width: 60px; height: 60px; color: #9daab2; }
+.teacher-exercise-thumbnail { display: grid; place-items: center; background: transparent; border-radius: 10px; width: 108px; height: 94px; color: #9daab2; }
 .teacher-exercise-thumbnail img { width: 100%; height: 100%; object-fit: contain; border-radius: inherit; }
+.teacher-library-picker { display: grid; gap: 10px; }
+.teacher-selected-exercise { display: flex; gap: 16px; align-items: center; padding: 10px; border: 1px solid #ff8a3429; border-radius: 10px; background: #0c131755; }
+.teacher-selected-exercise > div { display: grid; gap: 6px; }
+.teacher-selected-exercise span:not(.exercise-visual), .teacher-selected-exercise small { color: #aab6bd; font-size: 11px; }
+.teacher-exercise-preview.exercise-visual { width: 160px; height: 115px; flex: 0 0 auto; background: transparent; }
+.teacher-exercise-preview img { width: 100%; height: 100%; object-fit: contain; }
+@media (max-width: 480px) {
+  .teacher-library-item { grid-template-columns: 85px minmax(0, 1fr); padding: 12px; gap: 10px; }
+  .teacher-exercise-thumbnail { width: 85px; height: 85px; }
+  .teacher-exercise-preview.exercise-visual { width: 115px; height: 95px; }
+  .teacher-selected-exercise { gap: 10px; }
+}
 .teacher-report-summary { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin: 20px 0; font-size: 12px; color: #a9b4bb; }
 .teacher-report-summary strong { color: #f3f5f6; font-size: 24px; margin-right: 5px; }
 .teacher-report-summary > .teacher-row-actions { margin-left: auto; }

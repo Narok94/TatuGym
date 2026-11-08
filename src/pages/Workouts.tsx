@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { Workout } from "../types";
 import { ExerciseImage } from "../components/ExerciseImage";
+import { Anatomy } from "../components/Anatomy";
 import treinoA from "../assets/cards/treino_a.webp";
 import treinoB from "../assets/cards/treino_b.webp";
 import treinoC from "../assets/cards/treino_c.webp";
@@ -45,7 +46,15 @@ export function Workouts({
             aria-label={`Abrir ${w.name}`} onClick={() => navigate(`workout/${w.id}`)}>
             {workoutCards[w.id] ? <img className="workout-card-image"
               src={workoutCards[w.id]} alt={`${w.name}: ${cardDescriptions[w.id] ?? w.groups.join(", ")}`} decoding="async" />
-              : <span>{w.name}</span>}
+              : <div className="assigned-workout-cover">
+                <Anatomy group={w.muscle} />
+                <div className="assigned-workout-copy">
+                  <span className="assigned-workout-label">{w.id.startsWith('assigned:') ? 'PLANO DO PROFESSOR' : 'SEU TREINO'}</span>
+                  <h2>{w.name}</h2><p>{w.groups.join(' · ')}</p>
+                  <span className="assigned-workout-meta"><Dumbbell size={13} />{w.exercises.length} exercícios <Clock3 size={13} />~{w.duration} min</span>
+                </div>
+                <span className="assigned-workout-play"><Play size={21} fill="currentColor" /></span>
+              </div>}
           </button>
         ))}
       </div>
@@ -89,11 +98,11 @@ export function WorkoutDetails({
               <span className="exercise-number">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <ExerciseImage name={e.name} className="exercise-symbol" />
+              <ExerciseImage name={e.name} imageUrl={e.imageUrl} className="exercise-symbol" />
               <span className="exercise-info">
                 <strong>{e.name}</strong>
                 <span>
-                  {e.sets} séries <i /> {e.reps} repetições
+                  {e.sets} séries <i /> {e.reps} {e.unit === 'seconds' ? 'segundos' : 'repetições'}
                 </span>
                 <small>
                   {e.load} kg <span>·</span> {e.rest}s de descanso

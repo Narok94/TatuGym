@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { appData, checkins } from './validation.mjs';
+import { workoutMuscle } from './catalog.mjs';
 export function fail(status,message) { throw Object.assign(new Error(message),{status}); }
 export const checksum = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export function emptyData(user) { return {version:1,user:{id:user.id,name:user.name},welcomed:true,theme:'system',workouts:[],meals:[],mealLogs:{},activeSession:null,history:[],weights:[]}; }
@@ -22,7 +23,10 @@ export async function studentRead(db,user) {
   const result = await db.query('SELECT data,checkins,revision FROM forja.student_data WHERE user_id=$1',[user.id]);
   const value = result.rows[0] ?? {data:emptyData(user),checkins:{},revision:0};
   const plans = await db.query("SELECT w.data FROM forja.workouts w JOIN forja.students s ON s.id=w.student_id JOIN forja.teacher_students ts ON ts.student_id=s.id AND ts.teacher_id=w.owner_id WHERE s.user_id=$1 AND w.source='teacher' AND NOT w.archived AND w.data->>'status'='ATIVO'",[user.id]);
-  return {...value,assignedPlans:plans.rows.map(x=>({...x.data,id:`assigned:${x.data.teacherId}:${x.data.id}`,subtitle:x.data.description,groups:[...new Set(x.data.exercises.map(e=>e.muscleGroup).filter(Boolean))],muscle:'push'}))};
+  return {...value,assignedPlans:plans.rows.map(x=>{
+    const groups=[...new Set(x.data.exercises.map(e=>e.muscleGroup).filter(Boolean))];
+    return {...x.data,id:`assigned:${x.data.teacherId}:${x.data.id}`,subtitle:x.data.description,groups,muscle:workoutMuscle(groups)};
+  })};
 }
 export async function studentWrite(db,user,body) {
   const data = appData.parse(body.data); const records = checkins.parse(body.checkins);

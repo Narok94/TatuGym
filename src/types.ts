@@ -7,6 +7,8 @@ export interface Exercise {
   reps: string;
   load: number;
   rest: number;
+  imageUrl?: string;
+  unit?: "reps" | "seconds";
 }
 export interface Workout {
   id: string;

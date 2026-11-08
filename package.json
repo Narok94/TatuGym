@@ -1,14 +1,15 @@
 {
   "name": "meu-treino",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "db:inspect": "node --env-file-if-exists=.env.development.local scripts/inspect-db.mjs",
     "db:migrate": "node --env-file-if-exists=.env.development.local scripts/migrate.mjs",
     "db:seed": "node --env-file-if-exists=.env.development.local scripts/seed-users.mjs",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/verify-exercise-catalog.mjs && tsc -b && vite build",
+    "verify:catalog": "node scripts/verify-exercise-catalog.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node scripts/test-neon.mjs",
     "test:neon": "node scripts/test-neon.mjs",

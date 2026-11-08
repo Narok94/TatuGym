@@ -1,11 +1,13 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { Copy, Download, Dumbbell, LogOut, Pencil, Plus, Printer, Trash2, TrendingUp } from "lucide-react";
+import { Copy, Download, LogOut, Pencil, Plus, Printer, Trash2, TrendingUp } from "lucide-react";
 import type { Assessment, LibraryExercise, Student, TeacherProfile, TeacherSnapshot, TrainingPlan } from "./models";
 import { exportAssessments, studentAssessments } from "./metrics";
 import { TeacherChart } from "./Charts";
 import { localDate } from "../store";
 import { value } from "./Forms";
+import { ExerciseImage } from "../components/ExerciseImage";
+import { normalizeExerciseName } from "../exerciseCatalog";
 
 export function PageHeading({ title, description, action, actionLabel }: { title: string; description: string; action?: () => void; actionLabel?: string }) {
   return <div className="teacher-page-heading"><div><h1>{title}</h1><p>{description}</p></div>{action && <button className="button primary" onClick={action}><Plus size={16} />{actionLabel}</button>}</div>;
@@ -69,18 +71,15 @@ export function EvolutionPage({ snapshot, initialStudentId }: { snapshot: Teache
       <p className="teacher-help">{student?.goal ? `Objetivo cadastrado: ${student.goal}. ` : ""}Medidas informadas pelo professor; não são dados sincronizados do aplicativo do aluno.</p>
     </section></>;
 }
-function ExerciseThumbnail({ source }: { source: string }) {
-  const [failed, setFailed] = useState(false);
-  return <span className="teacher-exercise-thumbnail">{source && !failed ? <img src={source} alt="" loading="lazy" onError={() => setFailed(true)} /> : <Dumbbell size={24} />}</span>;
-}
 export function LibraryPage({ snapshot, edit, remove }: { snapshot: TeacherSnapshot; edit: (exercise?: LibraryExercise) => void; remove: (exercise: LibraryExercise) => void }) {
   const [query, setQuery] = useState(""); const [group, setGroup] = useState("");
   const groups = [...new Set(snapshot.library.map(item => item.muscleGroup))].sort();
-  const exercises = snapshot.library.filter(item => `${item.name} ${item.equipment}`.toLocaleLowerCase().includes(query.toLocaleLowerCase()) && (!group || item.muscleGroup === group));
-  return <><PageHeading title="Biblioteca de exercícios" description="Sua biblioteca começa vazia. Cadastre os movimentos e adicione imagens reais quando estiverem disponíveis." action={() => edit()} actionLabel="Cadastrar exercício" />
+  const exercises = snapshot.library.filter(item => normalizeExerciseName(`${item.name} ${item.equipment}`).includes(normalizeExerciseName(query)) && (!group || item.muscleGroup === group));
+  return <><PageHeading title="Biblioteca de exercícios" description="Exercícios organizados por grupo muscular, com imagens e orientações prontas para montar os treinos dos alunos." action={() => edit()} actionLabel="Cadastrar exercício" />
     <section className="teacher-panel"><div className="teacher-filters"><label>Buscar exercícios<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome ou equipamento" /></label><label>Filtrar grupo muscular<select value={group} onChange={event => setGroup(event.target.value)}><option value="">Todos os grupos</option>{groups.map(item => <option key={item}>{item}</option>)}</select></label></div>
-      <div className="teacher-library-grid">{exercises.map(item => <article className="teacher-library-item" key={item.id}><ExerciseThumbnail key={item.imageUrl} source={item.imageUrl} /><div><h2>{item.name}</h2><span className="teacher-status">{item.muscleGroup}</span><p>{item.equipment || "Sem equipamento informado"}</p><p>{item.instructions || "Instruções ainda não cadastradas."}</p>{!item.imageUrl && <small>Imagem real pendente</small>}</div><EditActions name={item.name} edit={() => edit(item)} remove={() => remove(item)} /></article>)}</div>
-      {!exercises.length && <Empty>{snapshot.library.length ? "Nenhum exercício corresponde aos filtros." : "Nenhum exercício cadastrado. Sua biblioteca não recebe conteúdo definitivo automaticamente."}</Empty>}
+      <p className="teacher-help">{exercises.length} de {snapshot.library.length} exercícios · {groups.length} grupos musculares</p>
+      <div className="teacher-library-grid">{exercises.map(item => <article className="teacher-library-item" key={item.id}><ExerciseImage name={item.name} imageUrl={item.imageUrl} className="teacher-exercise-thumbnail" /><div><h2>{item.name}</h2><span className="teacher-status">{item.muscleGroup}</span><p>{item.equipment || "Sem equipamento informado"}</p><p>{item.instructions || "Instruções ainda não cadastradas."}</p></div><EditActions name={item.name} edit={() => edit(item)} remove={() => remove(item)} /></article>)}</div>
+      {!exercises.length && <Empty>{snapshot.library.length ? "Nenhum exercício corresponde aos filtros." : "Nenhum exercício cadastrado."}</Empty>}
     </section></>;
 }
 function downloadText(contents: string, type: string, filename: string) {

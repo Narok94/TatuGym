@@ -2,15 +2,16 @@ import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { fail,checksum } from './data.mjs';
 import * as schemas from './validation.mjs';
+import { teacherLibrary } from './catalog.mjs';
 
 export async function teacherRead(db,user) {
   const profile=await db.query('SELECT profile FROM forja.teachers WHERE id=$1',[user.id]);
   const students=await db.query('SELECT s.id,s.profile FROM forja.students s JOIN forja.teacher_students t ON s.id=t.student_id WHERE t.teacher_id=$1',[user.id]);
   const plans=await db.query("SELECT data FROM forja.workouts WHERE owner_id=$1 AND source='teacher' AND NOT archived",[user.id]);
   const assessments=await db.query('SELECT data FROM forja.physical_assessments WHERE teacher_id=$1 AND NOT archived',[user.id]);
-  const library=await db.query("SELECT data FROM forja.exercises WHERE owner_id=$1 AND workout_id='' AND NOT archived",[user.id]);
+  const library=await db.query("SELECT data,archived FROM forja.exercises WHERE owner_id=$1 AND workout_id=''",[user.id]);
   const activities=await db.query('SELECT data FROM forja.teacher_activities WHERE teacher_id=$1 ORDER BY data->>\'at\' DESC',[user.id]);
-  return {profile:profile.rows[0]?.profile,students:students.rows.map(s=>({...s.profile,id:s.id,teacherId:user.id,role:'ALUNO'})),plans:plans.rows.map(x=>x.data),assessments:assessments.rows.map(x=>x.data),library:library.rows.map(x=>x.data),activities:activities.rows.map(x=>x.data)};
+  return {profile:profile.rows[0]?.profile,students:students.rows.map(s=>({...s.profile,id:s.id,teacherId:user.id,role:'ALUNO'})),plans:plans.rows.map(x=>x.data),assessments:assessments.rows.map(x=>x.data),library:teacherLibrary(user.id,library.rows),activities:activities.rows.map(x=>x.data)};
 }
 async function linked(db,user,id) {
   const found=await db.query('SELECT student_id FROM forja.teacher_students WHERE teacher_id=$1 AND student_id=$2',[user.id,id]);
@@ -37,7 +38,14 @@ export async function teacherMutation(db,user,{action,input,id},importing=false)
     await db.query('INSERT INTO forja.teacher_students(teacher_id,student_id) VALUES($1,$2) ON CONFLICT DO NOTHING',[user.id,entryId]);
   } else if (action==='savePlan') {
     value=schemas.plan.parse(input); if(value.studentId) await linked(db,user,value.studentId);
-    for (const ex of value.exercises) if(ex.libraryId && !snapshot.library.some(x=>x.id===ex.libraryId)) fail(403,'Exercício indisponível.');
+    for (const ex of value.exercises) if(ex.libraryId) {
+      const source=snapshot.library.find(x=>x.id===ex.libraryId);
+      if(!source) fail(403,'Exercício indisponível.');
+      if(!importing) {
+        ex.imageUrl ??= source.imageUrl;
+        ex.unit ??= source.unit ?? 'reps';
+      }
+    }
     value={...value,id:entryId,teacherId:user.id,updatedAt:(importing?input.updatedAt:null) ?? new Date().toISOString()};
     await db.query("INSERT INTO forja.workouts(owner_id,id,student_id,source,data) VALUES($1,$2,$3,'teacher',$4) ON CONFLICT(owner_id,id) DO UPDATE SET data=excluded.data,student_id=excluded.student_id,archived=false",[user.id,entryId,value.studentId||null,JSON.stringify(value)]);
     await db.query('UPDATE forja.exercises SET archived=true WHERE owner_id=$1 AND workout_id=$2',[user.id,entryId]);
@@ -56,7 +64,8 @@ export async function teacherMutation(db,user,{action,input,id},importing=false)
   } else if(action==='deletePlan') await db.query("UPDATE forja.workouts SET archived=true WHERE owner_id=$1 AND id=$2 AND source='teacher'",[user.id,id]);
   else if(action==='deleteAssessment') await db.query('UPDATE forja.physical_assessments SET archived=true WHERE teacher_id=$1 AND id=$2',[user.id,id]);
   else if(action==='deleteExercise') {
-    await db.query("UPDATE forja.exercises SET archived=true WHERE owner_id=$1 AND id=$2 AND workout_id=''",[user.id,id]);
+    const exercise=snapshot.library.find(item=>item.id===id);
+    await db.query("INSERT INTO forja.exercises(owner_id,id,data,archived) VALUES($1,$2,$3,true) ON CONFLICT(owner_id,id,workout_id) DO UPDATE SET archived=true",[user.id,id,JSON.stringify(exercise)]);
     for(const item of snapshot.plans.filter(p=>p.exercises.some(e=>e.libraryId===id))) {
       const exercises=item.exercises.map(ex=>{if(ex.libraryId!==id)return ex;const {libraryId,...copy}=ex;return copy;});
       await teacherMutation(db,user,{action:'savePlan',id:item.id,input:{...item,exercises}});

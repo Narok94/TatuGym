@@ -3,12 +3,39 @@ import assert from 'node:assert/strict';
 import { database,transaction } from '../server/db.mjs';
 import { importStudent,studentRead,studentWrite } from '../server/data.mjs';
 import { teacherRead,teacherMutation,importTeacher } from '../server/teacher.mjs';
+import catalog from '../shared/exercise-catalog.json' with {type:'json'};
 const rollback=Symbol('rollback');
 async function isolated(action) {
   assert.match(process.env.FORJA_TEST_SCHEMA||'',/^forja_test_/);
   try {await transaction(async db=>{await action(db);throw rollback;});}catch(error){if(error!==rollback)throw error;}
 }
 after(async()=>{await database().end();});
+test('built-in library is complete, isolated per teacher and copied into assigned student plans',()=>isolated(async db=>{
+  const teacher=(await db.query("SELECT * FROM forja.users WHERE login='professor'")).rows[0];
+  const other=(await db.query("SELECT * FROM forja.users WHERE login='professor2'")).rows[0];
+  const student=(await db.query("SELECT * FROM forja.users WHERE login='henrique'")).rows[0];
+  const snapshot=await teacherRead(db,teacher);
+  assert.equal(snapshot.library.length,100);
+  for(const group of new Set(catalog.map(item=>item.muscleGroup))) assert.equal(snapshot.library.filter(item=>item.muscleGroup===group).length,10);
+  assert.equal((await db.query("SELECT count(*)::int AS count FROM forja.exercises WHERE owner_id=$1",[teacher.id])).rows[0].count,0);
+  const source=snapshot.library.find(item=>item.name==='Puxada frontal');
+  await teacherMutation(db,teacher,{action:'saveExercise',id:source.id,input:{...source,instructions:'Orientação particular'}});
+  assert.equal((await teacherRead(db,teacher)).library.find(item=>item.id===source.id).instructions,'Orientação particular');
+  assert.equal((await teacherRead(db,other)).library.find(item=>item.id===source.id).instructions,source.instructions);
+  const {id}=await teacherMutation(db,teacher,{action:'savePlan',input:{name:'Plano ilustrado',studentId:student.id,description:'Plano do professor',status:'ATIVO',duration:40,
+    exercises:[{id:'exercise-library-contract',libraryId:source.id,name:source.name,muscleGroup:source.muscleGroup,sets:3,reps:'8–12',load:20,rest:60,instructions:'Orientação particular'}]}});
+  const assigned=(await studentRead(db,student)).assignedPlans.find(plan=>plan.name==='Plano ilustrado');
+  assert.equal(assigned.muscle,'pull');
+  assert.equal(assigned.exercises[0].imageUrl,source.imageUrl);
+  assert.equal(assigned.exercises[0].unit,'reps');
+  await teacherMutation(db,teacher,{action:'deleteExercise',id:source.id});
+  assert.equal((await teacherRead(db,teacher)).library.some(item=>item.id===source.id),false);
+  assert.equal((await teacherRead(db,other)).library.some(item=>item.id===source.id),true);
+  const saved=(await teacherRead(db,teacher)).plans.find(plan=>plan.id===id);
+  assert.equal(saved.exercises[0].libraryId,undefined);
+  assert.equal(saved.exercises[0].imageUrl,source.imageUrl);
+  assert.equal(saved.exercises[0].instructions,'Orientação particular');
+}));
 test('student import is atomic, preserves full snapshots, rejects conflicts and stays idempotent',()=>isolated(async db=>{
   const user=(await db.query("SELECT * FROM forja.users WHERE login='henrique'")).rows[0];
   const workout={id:'legacy-workout',name:'Original',subtitle:'Original',groups:['Peito'],duration:40,muscle:'push',exercises:[{id:'e1',name:'Supino',sets:2,reps:'8',load:40,rest:60}]};
@@ -39,7 +66,9 @@ test('teacher import preserves IDs, timestamps, ownership and original library c
   const immutable=structuredClone(original);
   await importTeacher(db,teacher,structuredClone(original));
   const saved=await teacherRead(db,teacher);
-  for(const key of ['students','plans','assessments','library']) assert.deepEqual(saved[key],immutable[key]);
+  for(const key of ['students','plans','assessments']) assert.deepEqual(saved[key],immutable[key]);
+  assert.deepEqual(saved.library.filter(item=>!item.id.startsWith('forja:')),immutable.library);
+  assert.equal(saved.library.filter(item=>item.id.startsWith('forja:')).length,100);
   assert.deepEqual(saved.profile,immutable.profiles[id]);
   assert.ok(saved.activities.some(x=>x.id==='legacy-activity'));
   const archived=await db.query('SELECT original FROM forja.local_imports WHERE user_id=$1',[id]);assert.deepEqual(archived.rows[0].original,immutable);
