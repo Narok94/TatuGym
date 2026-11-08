@@ -3,15 +3,16 @@ import { isDeepStrictEqual } from 'node:util';
 import { fail,checksum } from './data.mjs';
 import * as schemas from './validation.mjs';
 import { teacherLibrary } from './catalog.mjs';
+import { hashPassword } from './password.mjs';
 
 export async function teacherRead(db,user) {
   const profile=await db.query('SELECT profile FROM forja.teachers WHERE id=$1',[user.id]);
-  const students=await db.query('SELECT s.id,s.profile FROM forja.students s JOIN forja.teacher_students t ON s.id=t.student_id WHERE t.teacher_id=$1',[user.id]);
+  const students=await db.query('SELECT s.id,s.profile,u.login,u.must_change_password FROM forja.students s JOIN forja.teacher_students t ON s.id=t.student_id LEFT JOIN forja.users u ON u.id=s.user_id WHERE t.teacher_id=$1',[user.id]);
   const plans=await db.query("SELECT data FROM forja.workouts WHERE owner_id=$1 AND source='teacher' AND NOT archived",[user.id]);
   const assessments=await db.query('SELECT data FROM forja.physical_assessments WHERE teacher_id=$1 AND NOT archived',[user.id]);
   const library=await db.query("SELECT data,archived FROM forja.exercises WHERE owner_id=$1 AND workout_id=''",[user.id]);
   const activities=await db.query('SELECT data FROM forja.teacher_activities WHERE teacher_id=$1 ORDER BY data->>\'at\' DESC',[user.id]);
-  return {profile:profile.rows[0]?.profile,students:students.rows.map(s=>({...s.profile,id:s.id,teacherId:user.id,role:'ALUNO'})),plans:plans.rows.map(x=>x.data),assessments:assessments.rows.map(x=>x.data),library:teacherLibrary(user.id,library.rows),activities:activities.rows.map(x=>x.data)};
+  return {profile:profile.rows[0]?.profile,students:students.rows.map(s=>({...s.profile,id:s.id,teacherId:user.id,role:'ALUNO',...(s.login?{access:{login:s.login,mustChangePassword:s.must_change_password}}:{})})),plans:plans.rows.map(x=>x.data),assessments:assessments.rows.map(x=>x.data),library:teacherLibrary(user.id,library.rows),activities:activities.rows.map(x=>x.data)};
 }
 async function linked(db,user,id) {
   const found=await db.query('SELECT student_id FROM forja.teacher_students WHERE teacher_id=$1 AND student_id=$2',[user.id,id]);
@@ -30,11 +31,31 @@ export async function teacherMutation(db,user,{action,input,id},importing=false)
     await db.query('UPDATE forja.teachers SET profile=$2 WHERE id=$1',[user.id,JSON.stringify(value)]);
   } else if (action==='saveStudent') {
     if(importing && (await db.query('SELECT id FROM forja.students WHERE id=$1',[entryId])).rowCount) fail(409,'Identificador de aluno já existente. Preserve a cópia local para conciliação.');
-    value=schemas.student.parse(input); value.email=value.email.toLowerCase();
+    const {access,...profile}=schemas.student.parse(input);
+    value=profile; value.email=value.email.toLowerCase();
     const duplicate=await db.query("SELECT id FROM forja.students WHERE lower(profile->>'email')=$1 AND id<>$2",[value.email,entryId]);
     if (duplicate.rowCount) fail(409,'E-mail já cadastrado.');
+    const existing=(await db.query('SELECT user_id FROM forja.students WHERE id=$1',[entryId])).rows[0];
+    let accountId=existing?.user_id;
+    if(access && !importing) {
+      const taken=await db.query('SELECT id FROM forja.users WHERE login=$1 AND id<>$2',[access.login,accountId||'']);
+      if(taken.rowCount) fail(409,'Este login já está em uso. Escolha outro.');
+      if(!accountId) {
+        if(!access.temporaryPassword) fail(422,'Defina uma senha temporária para criar o acesso.');
+        accountId=randomUUID();
+        await db.query("INSERT INTO forja.users(id,login,password_hash,role,name,must_change_password) VALUES($1,$2,$3,'ALUNO',$4,true)",[accountId,access.login,await hashPassword(access.temporaryPassword),value.name]);
+      } else {
+        const account=(await db.query('SELECT role FROM forja.users WHERE id=$1 FOR UPDATE',[accountId])).rows[0];
+        if(account?.role!=='ALUNO') fail(403,'Conta incompatível com o cadastro do aluno.');
+        await db.query('UPDATE forja.users SET login=$2,name=$3 WHERE id=$1',[accountId,access.login,value.name]);
+        if(access.temporaryPassword) {
+          await db.query('UPDATE forja.users SET password_hash=$2,must_change_password=true WHERE id=$1',[accountId,await hashPassword(access.temporaryPassword)]);
+          await db.query('DELETE FROM forja.sessions WHERE user_id=$1',[accountId]);
+        }
+      }
+    } else if(accountId && !importing) await db.query('UPDATE forja.users SET name=$2 WHERE id=$1',[accountId,value.name]);
     value={...value,createdAt:(importing?input.createdAt:null) ?? snapshot.students.find(x=>x.id===id)?.createdAt ?? new Date().toISOString()};
-    await db.query('INSERT INTO forja.students(id,profile) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET profile=excluded.profile',[entryId,JSON.stringify(value)]);
+    await db.query('INSERT INTO forja.students(id,user_id,profile) VALUES($1,$2,$3) ON CONFLICT(id) DO UPDATE SET profile=excluded.profile,user_id=excluded.user_id',[entryId,accountId||null,JSON.stringify(value)]);
     await db.query('INSERT INTO forja.teacher_students(teacher_id,student_id) VALUES($1,$2) ON CONFLICT DO NOTHING',[user.id,entryId]);
   } else if (action==='savePlan') {
     value=schemas.plan.parse(input); if(value.studentId) await linked(db,user,value.studentId);
@@ -72,7 +93,7 @@ export async function teacherMutation(db,user,{action,input,id},importing=false)
     }
   }
   else fail(400,'Operação inválida.');
-  const activity={id:randomUUID(),teacherId:user.id,title:'Cadastro atualizado',at:new Date().toISOString()};
+  const activity={id:randomUUID(),teacherId:user.id,title:action==='saveStudent' && input?.access?.temporaryPassword && !importing?'Acesso do aluno atualizado':'Cadastro atualizado',at:new Date().toISOString()};
   await db.query('INSERT INTO forja.teacher_activities(teacher_id,id,data) VALUES($1,$2,$3)',[user.id,activity.id,JSON.stringify(activity)]);
   return {id:entryId};
 }

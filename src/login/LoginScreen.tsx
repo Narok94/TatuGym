@@ -25,7 +25,7 @@ export default function LoginScreen({ onLogin, mode }: { onLogin: (user: string,
           {error && <p className="forja-login-error" role="alert">{error}</p>}
           <button type="submit" className="forja-enter" disabled={unavailable || pending}>{pending ? "Entrando…" : "Entrar"}</button>
           <a className="forja-recovery" href="#login" onClick={event => { event.preventDefault(); setRecovery(true); setError(""); }}>Esqueceu sua senha?</a>
-          {recovery && <p className="forja-login-message" role="status">Recuperação de senha indisponível nesta etapa. Será habilitada com o backend.</p>}
+          {recovery && <p className="forja-login-message" role="status">Peça ao seu professor uma nova senha temporária. Ao entrar, você poderá definir sua própria senha.</p>}
         </form>
       </section>
     </main>

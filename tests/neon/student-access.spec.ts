@@ -1,0 +1,108 @@
+import { test, expect, type Page } from '@playwright/test';
+
+async function login(page: Page, username: string, password: string) {
+  await page.goto('/#login');
+  await page.reload();
+  await page.getByLabel('Usuário ou e-mail', { exact: true }).fill(username);
+  await page.getByLabel('Senha', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+}
+
+test('teacher provisions and resets student access; first login requires a private password and preserves records', async ({ page, context, browser }, info) => {
+  test.setTimeout(120000);
+  const username = `aluno-${info.project.name}`;
+  const name = `Aluno ${info.project.name}`;
+  const permanent = 'Minha senha privada de treino 2026';
+  await login(page, 'professor', process.env.FORJA_SEED_TEACHER_PASSWORD!);
+  await expect(page).toHaveURL(/#professor\/dashboard$/);
+  await page.evaluate(() => { location.hash = 'professor/alunos'; });
+  await page.getByRole('button', { name: 'Cadastrar aluno', exact: true }).click();
+  await page.getByLabel('Nome completo', { exact: true }).fill(name);
+  await page.getByLabel('E-mail do aluno', { exact: true }).fill(`${username}@example.test`);
+  await page.getByLabel('Login do aluno', { exact: true }).fill(username);
+  await page.getByRole('button', { name: 'Gerar senha temporária', exact: true }).click();
+  const temporary = await page.getByLabel('Senha temporária', { exact: true }).inputValue();
+  expect(temporary.length).toBeGreaterThanOrEqual(15);
+  await page.getByRole('button', { name: 'Ocultar senha temporária', exact: true }).click();
+  await page.locator('.teacher-student-access').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: info.outputPath('professor-acesso-aluno.png') });
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  const snapshot = await (await context.request.get('/api/forja?action=teacher')).json();
+  const student = snapshot.students.find((item: { name: string }) => item.name === name);
+  expect(student.access).toEqual({ login: username, mustChangePassword: true });
+  expect(JSON.stringify(snapshot)).not.toContain(temporary);
+  expect(JSON.stringify(snapshot)).not.toContain('password_hash');
+  const savedPlan = await context.request.post('/api/forja?action=teacher', { data: { action: 'savePlan', input: {
+    name: `Plano de ${name}`, studentId: student.id, description: '', status: 'ATIVO', duration: 40,
+    exercises: [{ id: 'first-exercise', libraryId: 'forja:puxada-frontal', name: 'Puxada frontal', muscleGroup: 'Costas', sets: 3, reps: '8–12', load: 20, rest: 60 }],
+  } } });
+  expect(savedPlan.ok()).toBe(true);
+  const { viewport, isMobile, hasTouch, deviceScaleFactor, userAgent } = info.project.use;
+  const pupil = await browser.newContext({ viewport, isMobile, hasTouch, deviceScaleFactor, userAgent, baseURL: 'http://127.0.0.1:5180' });
+  const pupilPage = await pupil.newPage();
+  await login(pupilPage, username, temporary);
+  await expect(pupilPage).toHaveURL(/#alterar-senha$/);
+  await expect(pupilPage.getByRole('heading', { name: 'Defina sua senha', exact: true })).toBeVisible();
+  await expect(pupilPage.locator('.app-shell')).toHaveCount(0);
+  await pupilPage.goto('/#workouts');
+  await expect(pupilPage).toHaveURL(/#alterar-senha$/);
+  const restricted = await pupil.request.get('/api/forja?action=student');
+  expect(restricted.status()).toBe(403);
+  expect((await restricted.json()).code).toBe('MUST_CHANGE_PASSWORD');
+  expect((await pupil.request.post('/api/forja?action=student', { data: {} })).status()).toBe(403);
+  const observer = await browser.newContext({ baseURL: 'http://127.0.0.1:5180' });
+  expect((await observer.request.post('/api/forja?action=login', { data: { login: username, password: temporary } })).ok()).toBe(true);
+  expect((await pupil.request.post('/api/forja?action=change-password', { data: { currentPassword: 'wrong temporary password', newPassword: permanent } })).status()).toBe(403);
+  expect((await pupil.request.post('/api/forja?action=change-password', { data: { currentPassword: temporary, newPassword: temporary } })).status()).toBe(422);
+  expect((await pupil.request.post('/api/forja?action=change-password', { data: { currentPassword: temporary, newPassword: 'short' } })).status()).toBe(400);
+  const oldCookie = (await pupil.cookies()).find(cookie => cookie.name === 'forja_session')!.value;
+  await pupilPage.getByLabel('Senha temporária', { exact: true }).fill(temporary);
+  await pupilPage.getByLabel('Nova senha', { exact: true }).fill(permanent);
+  await pupilPage.getByLabel('Confirmar nova senha', { exact: true }).fill('Outra senha de confirmação');
+  await pupilPage.getByRole('button', { name: 'Salvar senha e entrar', exact: true }).click();
+  await expect(pupilPage.getByRole('alert')).toContainText('não conferem');
+  await pupilPage.getByLabel('Confirmar nova senha', { exact: true }).fill(permanent);
+  await pupilPage.screenshot({ path: info.outputPath('primeiro-acesso-aluno.png') });
+  await pupilPage.getByRole('button', { name: 'Salvar senha e entrar', exact: true }).click();
+  await expect(pupilPage).toHaveURL(/#home$/);
+  await expect(pupilPage.getByRole('heading', { name: `Plano de ${name}`, exact: true })).toBeVisible();
+  expect((await pupil.cookies()).find(cookie => cookie.name === 'forja_session')!.value).not.toBe(oldCookie);
+  expect((await observer.request.get('/api/forja?action=student')).status()).toBe(401);
+  expect((await observer.request.post('/api/forja?action=login', { data: { login: username, password: temporary } })).status()).toBe(401);
+  await observer.close();
+  const afterFirstLogin = await (await context.request.get('/api/forja?action=teacher')).json();
+  expect(afterFirstLogin.students.find((item: { id: string }) => item.id === student.id).access.mustChangePassword).toBe(false);
+  expect(JSON.stringify(afterFirstLogin)).not.toContain(permanent);
+  const baseline = await (await pupil.request.get('/api/forja?action=student')).json();
+  const preservedData = { ...baseline.data, weights: [{ id: 'preserved-access-weight', date: '2026-11-08', value: 81.5 }] };
+  expect((await pupil.request.post('/api/forja?action=student', { data: { ...baseline, data: preservedData } })).ok()).toBe(true);
+  await pupilPage.reload();
+  await expect(pupilPage).toHaveURL(/#home$/);
+  await pupilPage.evaluate(() => { location.hash = 'profile'; });
+  await pupilPage.getByRole('button', { name: 'Sair da conta', exact: true }).click();
+  await expect(pupilPage).toHaveURL(/#login$/);
+  await login(pupilPage, username, permanent);
+  await expect(pupilPage).toHaveURL(/#home$/);
+  const userId = (await (await pupil.request.get('/api/forja?action=session')).json()).session.userId;
+  // A reset on the existing profile revokes the old session but preserves the account and data.
+  await page.getByRole('button', { name: `Editar ${name}`, exact: true }).click();
+  await page.getByLabel('Definir nova senha temporária', { exact: true }).check();
+  await page.getByRole('button', { name: 'Gerar senha temporária', exact: true }).click();
+  const reset = await page.getByLabel('Senha temporária', { exact: true }).inputValue();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect((await pupil.request.get('/api/forja?action=student')).status()).toBe(401);
+  await login(pupilPage, username, reset);
+  await expect(pupilPage).toHaveURL(/#alterar-senha$/);
+  await pupilPage.reload();
+  await expect(pupilPage.getByRole('heading', { name: 'Defina sua senha', exact: true })).toBeVisible();
+  const changed = await pupil.request.post('/api/forja?action=change-password', { data: { currentPassword: reset, newPassword: 'Minha segunda senha privada 2026' } });
+  expect(changed.ok()).toBe(true);
+  expect((await changed.json()).session.userId).toBe(userId);
+  const after = await (await pupil.request.get('/api/forja?action=student')).json();
+  expect(after.data).toEqual(preservedData);
+  expect(after.assignedPlans).toEqual(baseline.assignedPlans);
+  expect(after.checkins).toEqual(baseline.checkins);
+  await pupil.close();
+});

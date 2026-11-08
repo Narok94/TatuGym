@@ -20,6 +20,12 @@
 .forja-login-footer { text-align: center; color: #999; font-size: 9px; line-height: 1.5; padding: 12px 22px; }
 .icon-button.student-logout { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; width: auto; min-width: 68px; min-height: 40px; padding: 8px 10px; border: 1px solid #ffffff26; border-radius: 10px; background: transparent; color: #fff; font-size: 12px; }
 .profile-card .profile-logout { margin-top: 10px; }
+.forja-change-password .forja-login-main { padding-top: clamp(24px, 5dvh, 50px); }
+.forja-change-password .forja-login-panel { margin-top: 28px; }
+.forja-change-password .forja-login-panel h1 { margin-bottom: 12px; }
+.forja-password-intro { color: #c4c8ca; font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+.forja-password-label { display: block; margin-bottom: 7px; font-size: 12px; color: #ddd; }
+.forja-show-password { display: flex; align-items: center; gap: 8px; min-height: 40px; color: #ddd; font-size: 12px; }
 @media (min-width: 900px) {
   .forja-login-main { align-items: flex-end; padding-right: 70px; }
   .forja-login-logo { margin-right: 40px; }

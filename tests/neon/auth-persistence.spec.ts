@@ -57,12 +57,13 @@ test('real Neon: migration, persistence, guards, logout and teacher isolation',a
   await other.request.post('http://127.0.0.1:5180/api/forja?action=login',{data:{login:'professor2',password:teacher2Password}});
   const otherData=await (await other.request.get('http://127.0.0.1:5180/api/forja?action=teacher')).json();expect(otherData.students).toHaveLength(0);
   const own=await (await context.request.get('/api/forja?action=teacher')).json();
-  const forbidden=await other.request.post('http://127.0.0.1:5180/api/forja?action=teacher',{data:{action:'saveStudent',id:own.students[0].id,input:own.students[0]}});expect(forbidden.status()).toBe(403);
+  const henrique=own.students.find((student:{id:string})=>student.id==='henrique');expect(henrique).toBeTruthy();
+  const forbidden=await other.request.post('http://127.0.0.1:5180/api/forja?action=teacher',{data:{action:'saveStudent',id:henrique.id,input:henrique}});expect(forbidden.status()).toBe(403);
   const title=`Plano persistido ${info.project.name}`;
   await page.evaluate(()=>{location.hash='professor/treinos';});
   await page.getByRole('button',{name:'Criar treino',exact:true}).click();
   await page.getByLabel('Nome do treino',{exact:true}).fill(title);
-  await page.getByRole('combobox',{name:'Aluno responsável',exact:true}).selectOption(own.students[0].id);
+  await page.getByRole('combobox',{name:'Aluno responsável',exact:true}).selectOption(henrique.id);
   await page.getByRole('combobox',{name:'Situação do treino',exact:true}).selectOption('ATIVO');
   await page.getByLabel('Nome exercício 1',{exact:true}).fill('Supino');
   await page.getByRole('button',{name:'Salvar',exact:true}).click();

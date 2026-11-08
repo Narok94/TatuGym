@@ -105,6 +105,11 @@
 .teacher-report-summary > .teacher-row-actions { margin-left: auto; }
 .teacher-settings-heading { margin-top: 26px; }
 .teacher-form-note + .button { margin-top: 18px; }
+.teacher-student-access { display: grid; gap: 14px; border: 1px solid #ff8a3440; border-radius: 12px; padding: 16px; min-width: 0; }
+.teacher-student-access legend { color: #ffad70; padding: 0 6px; font-weight: 600; }
+.teacher-form label.teacher-check { display: flex; flex-direction: row; align-items: center; gap: 10px; min-height: 44px; line-height: 1.5; text-align: left; }
+.teacher-form .teacher-check input { width: 20px; height: 20px; min-height: 20px; padding: 0; flex-shrink: 0; accent-color: #ff7a24; }
+.teacher-student-access .teacher-row-actions { flex-wrap: wrap; }
 @media (max-width: 1000px) { .teacher-library-grid { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { .teacher-evolution-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .teacher-evolution-stats strong { font-size: 18px; } }
 .teacher-scope .modal:has(.teacher-exercise-editor) { width: min(850px, calc(100vw - 28px)); max-width: 850px; }

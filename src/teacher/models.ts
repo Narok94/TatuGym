@@ -3,6 +3,7 @@ export interface TeacherProfile { name: string; email: string; phone: string; sp
 export interface Student {
   id: string; teacherId: string; role: "ALUNO"; name: string; email: string; phone: string;
   birthDate: string; goal: string; status: "ATIVO" | "INATIVO"; notes: string; createdAt: string;
+  access?: { login: string; mustChangePassword: boolean };
 }
 export interface PlanExercise {
   id: string; name: string; muscleGroup: string; sets: number; reps: string; load: number;
@@ -25,7 +26,7 @@ export interface TeacherSnapshot {
   profile: TeacherProfile; students: Student[]; plans: TrainingPlan[];
   assessments: Assessment[]; library: LibraryExercise[]; activities: Activity[];
 }
-export type StudentInput = Omit<Student, "id" | "teacherId" | "role" | "createdAt">;
+export type StudentInput = Omit<Student, "id" | "teacherId" | "role" | "createdAt" | "access"> & { access?: { login: string; temporaryPassword?: string } };
 export type PlanInput = Omit<TrainingPlan, "id" | "teacherId" | "updatedAt">;
 export type AssessmentInput = Omit<Assessment, "id" | "teacherId">;
 export type LibraryInput = Omit<LibraryExercise, "id" | "teacherId">;

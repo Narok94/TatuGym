@@ -26,7 +26,7 @@ export function StudentsPage({ snapshot, edit, remove }: { snapshot: TeacherSnap
     <section className="teacher-panel"><div className="teacher-filters"><label>Buscar alunos<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nome ou e-mail" /></label>
       <label>Filtrar situação<select value={status} onChange={event => setStatus(event.target.value)}><option value="">Todas</option><option value="ATIVO">Ativos</option><option value="INATIVO">Inativos</option></select></label></div>
       <TeacherTable columns={["Aluno", "Objetivo", "Situação", "Treinos", "Ações"]}>{students.map(student => <tr key={student.id}>
-        <td data-label="Aluno"><strong>{student.name}</strong><small>{student.email}</small><small>{student.phone}</small></td><td data-label="Objetivo">{student.goal || "—"}</td>
+        <td data-label="Aluno"><strong>{student.name}</strong><small>{student.email}</small><small>{student.phone}</small><small>{student.access ? `Login: ${student.access.login} · ${student.access.mustChangePassword ? 'Senha temporária' : 'Acesso ativo'}` : 'Acesso ainda não criado'}</small></td><td data-label="Objetivo">{student.goal || "—"}</td>
         <td data-label="Situação"><span className={`teacher-status ${student.status === "ATIVO" ? "is-active" : ""}`}>{student.status === "ATIVO" ? "Ativo" : "Inativo"}</span></td>
         <td data-label="Treinos">{snapshot.plans.filter(plan => plan.studentId === student.id).length}</td>
         <td data-label="Ações"><EditActions name={student.name} edit={() => edit(student)} remove={() => remove(student)}><a className="icon-button" aria-label={`Ver evolução de ${student.name}`} href={`#professor/evolucao/${student.id}`}><TrendingUp size={17} /></a></EditActions></td>

@@ -61,7 +61,7 @@ export default function Home({
         <div className="dashboard-main">
           <WeeklyCheckIn today={now} />
           {workout ? <WorkoutHighlight workout={workout} session={data.activeSession} now={now.getTime()} start={start} />
-            : <section className="hero-workout"><div className="hero-content"><h2>Seus treinos</h2><p>Seus registros locais serão importados ao entrar no navegador em que foram salvos. Os treinos vinculados pelo professor também aparecerão aqui.</p></div></section>}
+            : <section className="hero-workout"><div className="hero-content"><h2>Seus treinos</h2><p>Seus treinos aparecerão aqui assim que seu professor vincular um plano à sua conta.</p></div></section>}
         </div>
         <aside className="dashboard-aside">
           <SectionTitle title="No seu ritmo" />

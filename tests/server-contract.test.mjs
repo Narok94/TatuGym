@@ -4,12 +4,48 @@ import { database,transaction } from '../server/db.mjs';
 import { importStudent,studentRead,studentWrite } from '../server/data.mjs';
 import { teacherRead,teacherMutation,importTeacher } from '../server/teacher.mjs';
 import catalog from '../shared/exercise-catalog.json' with {type:'json'};
+import { verifyPassword } from '../server/password.mjs';
 const rollback=Symbol('rollback');
 async function isolated(action) {
   assert.match(process.env.FORJA_TEST_SCHEMA||'',/^forja_test_/);
   try {await transaction(async db=>{await action(db);throw rollback;});}catch(error){if(error!==rollback)throw error;}
 }
 after(async()=>{await database().end();});
+test('teacher creates and resets student credentials without leaking passwords or changing student records',()=>isolated(async db=>{
+  const teacher=(await db.query("SELECT * FROM forja.users WHERE login='professor'")).rows[0];
+  const other=(await db.query("SELECT * FROM forja.users WHERE login='professor2'")).rows[0];
+  const profile={name:'Aluno com acesso',email:'new-student@example.test',phone:'',birthDate:'',goal:'Força',status:'ATIVO',notes:'Perfil preservado'};
+  const temporaryPassword='temporary-contract-strong-password';
+  const {id}=await teacherMutation(db,teacher,{action:'saveStudent',input:{...profile,access:{login:'  Novo.Aluno ',temporaryPassword}}});
+  const linked=(await db.query('SELECT user_id,profile FROM forja.students WHERE id=$1',[id])).rows[0];
+  const account=(await db.query('SELECT * FROM forja.users WHERE id=$1',[linked.user_id])).rows[0];
+  assert.equal(account.login,'novo.aluno');assert.equal(account.role,'ALUNO');assert.equal(account.must_change_password,true);
+  assert.equal(await verifyPassword(temporaryPassword,account.password_hash),true);
+  assert.equal(JSON.stringify(linked.profile).includes(temporaryPassword),false);
+  const visible=(await teacherRead(db,teacher)).students.find(student=>student.id===id);
+  assert.deepEqual(visible.access,{login:'novo.aluno',mustChangePassword:true});
+  assert.equal(JSON.stringify(await teacherRead(db,teacher)).includes(temporaryPassword),false);
+  await assert.rejects(()=>teacherMutation(db,other,{action:'saveStudent',id,input:{...profile,access:{login:'stolen',temporaryPassword}}}),{status:403});
+  // Reject an existing login instead of attaching another user's account to this profile.
+  await assert.rejects(()=>teacherMutation(db,teacher,{action:'saveStudent',input:{...profile,email:'another@example.test',access:{login:'henrique',temporaryPassword}}}),{status:409});
+  const before=await studentRead(db,account);
+  await studentWrite(db,account,{...before,data:{...before.data,weights:[{id:'keep-weight',date:'2026-11-08',value:82}]}});
+  const saved=await studentRead(db,account);
+  await db.query("INSERT INTO forja.sessions(token_hash,user_id,expires_at) VALUES('contract-temp-session',$1,now()+interval '1 hour')",[account.id]);
+  await teacherMutation(db,teacher,{action:'saveStudent',id,input:{...profile,name:'Nome editado',access:{login:'novo.login'}}});
+  const renamed=(await db.query('SELECT * FROM forja.users WHERE id=$1',[account.id])).rows[0];
+  assert.equal(renamed.password_hash,account.password_hash);assert.equal(renamed.login,'novo.login');
+  await teacherMutation(db,teacher,{action:'saveStudent',id,input:{...profile,access:{login:'novo.login',temporaryPassword:'another-temporary-password'}}});
+  const reset=(await db.query('SELECT * FROM forja.users WHERE id=$1',[account.id])).rows[0];
+  assert.equal(reset.must_change_password,true);assert.equal(await verifyPassword('another-temporary-password',reset.password_hash),true);
+  assert.equal(await verifyPassword(temporaryPassword,reset.password_hash),false);
+  assert.equal((await db.query('SELECT count(*)::int AS count FROM forja.sessions WHERE user_id=$1',[account.id])).rows[0].count,0);
+  assert.deepEqual(await studentRead(db,account),saved);
+  assert.equal((await db.query('SELECT user_id FROM forja.students WHERE id=$1',[id])).rows[0].user_id,account.id);
+  const legacy=await teacherMutation(db,teacher,{action:'saveStudent',input:{...profile,email:'unlinked@example.test'}});
+  await teacherMutation(db,teacher,{action:'saveStudent',id:legacy.id,input:{...profile,email:'unlinked@example.test',access:{login:'legacy-access',temporaryPassword}}});
+  assert.ok((await teacherRead(db,teacher)).students.find(student=>student.id===legacy.id).access);
+}));
 test('built-in library is complete, isolated per teacher and copied into assigned student plans',()=>isolated(async db=>{
   const teacher=(await db.query("SELECT * FROM forja.users WHERE login='professor'")).rows[0];
   const other=(await db.query("SELECT * FROM forja.users WHERE login='professor2'")).rows[0];

@@ -1,10 +1,11 @@
 import type { TeacherIdentity } from './teacher/models';
-export type AuthSession = {role:'ALUNO';userId:string;login:string;name:string}|{role:'PROFESSOR';teacherId:string;userId:string;login:string;name:string};
+export type AuthSession = ({role:'ALUNO';userId:string;login:string;name:string}|{role:'PROFESSOR';teacherId:string;userId:string;login:string;name:string}) & {mustChangePassword?:boolean};
 export interface AuthService {
   mode:'server'|'unavailable';
   readSession():AuthSession|null;
   refresh():Promise<AuthSession|null>;
   login(user:string,password:string):Promise<AuthSession>;
+  changePassword(currentPassword:string,newPassword:string):Promise<AuthSession>;
   logout():Promise<void>;
 }
 export const AUTH_UNAVAILABLE='Não foi possível conectar ao servidor. Tente novamente.';
@@ -15,13 +16,14 @@ let current:AuthSession|null=null;
 export async function api<T>(action:string,input?:unknown):Promise<T> {
   const response=await fetch(`/api/forja?action=${action}`,{method:input===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',headers:input===undefined?{}:{'Content-Type':'application/json'},body:input===undefined?undefined:JSON.stringify(input)});
   const value=await response.json().catch(()=>({error:AUTH_UNAVAILABLE}));
-  if(!response.ok) {if(response.status===401 && action!=='login') {current=null;window.dispatchEvent(new Event('forja:expired'));} throw new ApiError(value.error||AUTH_UNAVAILABLE,response.status);}
+  if(!response.ok) {if(response.status===401 && action!=='login') {current=null;window.dispatchEvent(new Event('forja:expired'));} if(value.code==='MUST_CHANGE_PASSWORD') window.dispatchEvent(new Event('forja:password-required')); throw new ApiError(value.error||AUTH_UNAVAILABLE,response.status);}
   return value;
 }
 const service:AuthService={
   mode:'server',readSession:()=>current,
   async refresh(){const value=await api<{session:AuthSession|null}>('session');current=value.session;return current;},
   async login(login,password){const value=await api<{session:AuthSession}>('login',{login,password});current=value.session;return current;},
+  async changePassword(currentPassword,newPassword){const value=await api<{session:AuthSession}>('change-password',{currentPassword,newPassword});current=value.session;return current;},
   async logout(){await api('logout',{});current=null;try{localStorage.setItem('forja:logout',String(Date.now()));}catch{/* Server session is already revoked. */}},
 };
 export function loadAuthService(){return Promise.resolve(service);}

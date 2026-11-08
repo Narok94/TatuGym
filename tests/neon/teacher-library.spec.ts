@@ -32,7 +32,7 @@ test('teacher chooses an illustrated library exercise and the student receives t
   await page.getByRole('button', { name: 'Criar treino', exact: true }).click();
   const title = `Plano com imagem ${info.project.name}`;
   await page.getByLabel('Nome do treino', { exact: true }).fill(title);
-  await page.getByRole('combobox', { name: 'Aluno responsável', exact: true }).selectOption(own.students[0].id);
+  await page.getByRole('combobox', { name: 'Aluno responsável', exact: true }).selectOption(own.students.find((student: { id: string }) => student.id === 'henrique').id);
   await page.getByRole('combobox', { name: 'Situação do treino', exact: true }).selectOption('ATIVO');
   await page.getByRole('combobox', { name: 'Filtrar grupo, exercício 1', exact: true }).selectOption('Costas');
   await page.getByRole('searchbox', { name: 'Buscar na biblioteca, exercício 1', exact: true }).fill('puxada frontal');

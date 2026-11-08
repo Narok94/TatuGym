@@ -19,11 +19,20 @@ export function Editor({ title, children, close, save }: { title: string; childr
   }}>{children}{error && <p className="teacher-error" role="alert">{error}</p>}<div className="teacher-form-actions"><button type="button" className="button secondary" onClick={close}>Cancelar</button><button className="button primary" type="submit" disabled={pending}>{pending?'Salvando…':'Salvar'}</button></div></form></Modal>;
 }
 export function StudentEditor({ student, close, save }: { student?: Student; close: () => void | Promise<void>; save: (input: StudentInput, id?: string) => void | Promise<void> }) {
+  const [createAccess, setCreateAccess] = useState(!student?.access);
+  const [resetPassword, setResetPassword] = useState(false);
+  const [login, setLogin] = useState(student?.access?.login ?? '');
+  const [temporaryPassword, setTemporaryPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [copyNotice, setCopyNotice] = useState('');
+  const hasAccess = !!student?.access || createAccess;
+  const needsPassword = hasAccess && (!student?.access || resetPassword);
   return <Editor title={student ? "Editar aluno" : "Cadastrar aluno"} close={close} save={form => save({
     name: value(form, "name"), email: value(form, "email"), phone: value(form, "phone"), birthDate: value(form, "birthDate"), goal: value(form, "goal"),
     status: value(form, "status") as StudentInput["status"], notes: value(form, "notes"),
+    ...(hasAccess ? { access: { login, ...(needsPassword ? { temporaryPassword } : {}) } } : {}),
   }, student?.id)}>
-    <p className="teacher-form-note">Cadastro de aluno vinculado a este professor. O cadastro não cria credenciais de acesso.</p>
+    <p className="teacher-form-note">Cadastre o perfil e o acesso do aluno. O treino ficará vinculado à mesma conta.</p>
     <label>Nome completo<input name="name" required maxLength={100} defaultValue={student?.name} /></label>
     <label>E-mail do aluno<input name="email" type="email" required maxLength={200} defaultValue={student?.email} /></label>
     <div className="form-grid"><label>Telefone<input name="phone" type="tel" maxLength={30} defaultValue={student?.phone} /></label>
@@ -31,6 +40,26 @@ export function StudentEditor({ student, close, save }: { student?: Student; clo
     <label>Objetivo<input name="goal" maxLength={200} defaultValue={student?.goal} /></label>
     <label>Situação<select name="status" defaultValue={student?.status ?? "ATIVO"}><option value="ATIVO">Ativo</option><option value="INATIVO">Inativo</option></select></label>
     <label>Observações<textarea name="notes" rows={3} maxLength={3000} defaultValue={student?.notes} /></label>
+    <fieldset className="teacher-student-access"><legend>Acesso ao aplicativo</legend>
+      {!student?.access && <label className="teacher-check"><input type="checkbox" checked={createAccess} onChange={event => setCreateAccess(event.target.checked)} />Criar acesso para este aluno</label>}
+      {hasAccess && <>
+        <label>Login do aluno<input required minLength={3} maxLength={200} pattern="[a-zA-Z0-9][a-zA-Z0-9._@+\-]*" autoComplete="off" autoCapitalize="none" spellCheck={false} value={login} onChange={event => { setLogin(event.target.value); setCopyNotice(''); }} placeholder="Ex.: joao.silva" /></label>
+        {student?.access && <>
+          <p className="teacher-form-note">{student.access.mustChangePassword ? 'O aluno precisa trocar a senha temporária no próximo acesso.' : 'O aluno já definiu a própria senha.'}</p>
+          <label className="teacher-check"><input type="checkbox" checked={resetPassword} onChange={event => setResetPassword(event.target.checked)} />Definir nova senha temporária</label>
+        </>}
+        {needsPassword && <>
+          <label>Senha temporária<input required type={showPassword ? 'text' : 'password'} minLength={15} maxLength={128} autoComplete="new-password" value={temporaryPassword} onChange={event => { setTemporaryPassword(event.target.value); setCopyNotice(''); }} /></label>
+          <div className="teacher-row-actions">
+            <button type="button" className="button secondary" onClick={() => { setTemporaryPassword(Array.from(crypto.getRandomValues(new Uint8Array(12)), byte => byte.toString(16).padStart(2, '0')).join('')); setShowPassword(true); setCopyNotice(''); }}>Gerar senha temporária</button>
+            <button type="button" className="button secondary" onClick={() => setShowPassword(!showPassword)}>{showPassword ? 'Ocultar senha temporária' : 'Mostrar senha temporária'}</button>
+            <button type="button" className="button secondary" disabled={!login || temporaryPassword.length < 15} onClick={async () => { try { await navigator.clipboard.writeText(`Login: ${login.trim().toLowerCase()}\nSenha temporária: ${temporaryPassword}`); setCopyNotice('Acesso copiado. Entregue ao aluno após salvar.'); } catch { setCopyNotice('Não foi possível copiar. Anote o login e a senha antes de salvar.'); } }}>Copiar acesso</button>
+          </div>
+          {copyNotice && <p className="teacher-form-note" role="status">{copyNotice}</p>}
+          <p className="teacher-form-note">Use pelo menos 15 caracteres. Copie ou anote a senha antes de salvar; ela não poderá ser consultada depois. O aluno precisará escolher outra senha no primeiro acesso.{student?.access ? ' Ao salvar, as sessões anteriores serão encerradas.' : ''}</p>
+        </>}
+      </>}
+    </fieldset>
   </Editor>;
 }
 const blankExercise = (): PlanExercise => ({ id: uid(), name: "", muscleGroup: "", sets: 3, reps: "8–12", load: 0, rest: 60, instructions: "" });
