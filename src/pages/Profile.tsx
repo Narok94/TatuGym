@@ -15,6 +15,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { AppData, Theme } from "../types";
+import { version } from "../../package.json";
 import { Brand, Modal, PageHeader, RowLink, SectionTitle } from "../components/UI";
 
 export default function Profile({
@@ -159,7 +160,7 @@ export default function Profile({
         </div>
       </div>
       <p className="app-version">
-        <Brand /> <span>·</span> VERSÃO 1.0 <span>·</span> FEITO PARA EVOLUIR
+        <Brand /> <span>·</span> VERSÃO {version} <span>·</span> FEITO PARA EVOLUIR
       </p>
       {confirmReset && (
         <Modal

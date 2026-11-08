@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   ArrowRight,
@@ -33,6 +33,7 @@ export default function App({ onLogout, localDataNotice }: {
   localDataNotice?: ReactNode;
 } = {}) {
   const { data, setData, storageError } = useAppData();
+  const scrollArea = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(readPage);
   const [offline, setOffline] = useState(!navigator.onLine);
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
@@ -46,35 +47,10 @@ export default function App({ onLogout, localDataNotice }: {
   const [installPrompt, setInstallPrompt] = useState<InstallPrompt | null>(
     null,
   );
-  useLayoutEffect(() => {
-    const root = document.documentElement;
-    const viewport = window.visualViewport;
-    const update = () => root.style.setProperty("--app-viewport-height", `${window.innerHeight}px`);
-    update();
-    let frame = window.requestAnimationFrame(update);
-    const schedule = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(update);
-    };
-    const visible = () => { if (document.visibilityState === "visible") schedule(); };
-    window.addEventListener("resize", schedule);
-    window.addEventListener("pageshow", schedule);
-    window.addEventListener("hashchange", schedule);
-    viewport?.addEventListener("resize", schedule);
-    document.addEventListener("visibilitychange", visible);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", schedule);
-      window.removeEventListener("pageshow", schedule);
-      window.removeEventListener("hashchange", schedule);
-      viewport?.removeEventListener("resize", schedule);
-      document.removeEventListener("visibilitychange", visible);
-      root.style.removeProperty("--app-viewport-height");
-    };
-  }, []);
   useEffect(() => {
     const updatePage = () => {
       setPage(readPage());
+      scrollArea.current?.scrollTo(0, 0);
       window.scrollTo(0, 0);
     };
     const updateOnline = () => setOffline(!navigator.onLine);
@@ -110,6 +86,7 @@ export default function App({ onLogout, localDataNotice }: {
   const navigate = (next: string) => {
     if (readPage() === next) {
       setPage(next);
+      scrollArea.current?.scrollTo(0, 0);
       window.scrollTo(0, 0);
     } else location.hash = next;
   };
@@ -237,6 +214,8 @@ export default function App({ onLogout, localDataNotice }: {
       </main>
     );
   return (
+    <div className="student-layout">
+    <div className="student-scroll" ref={scrollArea}>
     <div className={`app-shell ${page === "home" ? "dashboard-home" : ""} ${page === "session" && data.activeSession ? "executing" : ""}`}>
       <header className={`topbar${onLogout ? " with-session-controls" : ""}`}>
         <button
@@ -372,7 +351,6 @@ export default function App({ onLogout, localDataNotice }: {
           </div>
         )}
       </main>
-      <BottomNav page={page} navigate={navigate} />
       {restNotice && <div className="rest-notice" role="status">Descanso concluído. Pronto para a próxima série!</div>}
       {editingMeal && (
         <MealEditor
@@ -487,6 +465,9 @@ export default function App({ onLogout, localDataNotice }: {
           </button>
         </Modal>
       )}
+    </div>
+    </div>
+    <BottomNav page={page} navigate={navigate} />
     </div>
   );
 }

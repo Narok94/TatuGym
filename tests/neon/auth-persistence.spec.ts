@@ -171,10 +171,10 @@ test('total workout time survives navigation and reload and appears in history',
         const box = bar.getBoundingClientRect();
         return {
           bottom: box.bottom, viewport: innerHeight, left: box.left, width: box.width, viewportWidth: innerWidth,
-          padding: parseFloat(getComputedStyle(bar).paddingBottom), parentIsBody: bar.parentElement === document.body,
+          padding: parseFloat(getComputedStyle(bar).paddingBottom), insideContent: !!bar.closest('.app-shell'),
         };
       });
-      expect(geometry.parentIsBody).toBe(true);
+      expect(geometry.insideContent).toBe(false);
       expect(Math.abs(geometry.bottom - geometry.viewport)).toBeLessThan(1);
       expect(geometry.left).toBe(0);
       expect(geometry.width).toBe(geometry.viewportWidth);
