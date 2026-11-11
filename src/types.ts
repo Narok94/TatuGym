@@ -9,6 +9,7 @@ export interface Exercise {
   rest: number;
   imageUrl?: string;
   unit?: "reps" | "seconds";
+  instructions?: string;
 }
 export interface Workout {
   id: string;

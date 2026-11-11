@@ -17,7 +17,8 @@ for(const item of catalog) {
   hashes.add(hash);
   if(!item.equipment || !item.instructions || !['reps','seconds'].includes(item.unit)) throw new Error(`Cadastro incompleto: ${item.name}`);
 }
-if(ids.size!==100 || groups.size!==10 || [...groups.values()].some(count=>count!==10)) throw new Error('São necessários 10 grupos com 10 exercícios cada.');
+const baseGroups=['Peito','Costas','Ombros','Bíceps','Tríceps','Quadríceps','Posteriores de coxa','Glúteos','Panturrilhas','Abdômen'];
+if(baseGroups.some(group=>(groups.get(group)??0)<10)) throw new Error('Preserve os 10 exercícios de cada grupo original ao ampliar o catálogo.');
 const expectedFiles=new Set(catalog.map(item=>item.imageUrl.split('/').pop()));
 for(const file of readdirSync(new URL('../public/exercises/',import.meta.url))) if(!expectedFiles.has(file)) throw new Error(`Imagem fora do catálogo: ${file}`);
-console.log('Catálogo validado: 100 exercícios, 10 grupos, 100 imagens próprias em WebP.');
+console.log(`Catálogo validado: ${ids.size} exercícios, ${groups.size} grupos, ${hashes.size} imagens próprias em WebP.`);

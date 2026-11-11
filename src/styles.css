@@ -2731,7 +2731,15 @@ img.anatomy {
     padding-bottom: 0;
   }
 }
-/* Installed WebKit can subtract the status bar from dvh/innerHeight on cold launch. */
+.workout-guidance, .execution-guidance { color: var(--text); background: #10181de6; border: 1px solid #ff791f38; border-radius: 12px; padding: 14px 16px; margin: 0 0 16px; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.workout-guidance p, .execution-guidance p { margin: 6px 0 0; white-space: pre-line; }
+.workout-guidance summary, .execution-guidance summary { cursor: pointer; font-weight: 600; }
+.exercise-info > .exercise-guidance { display: block; white-space: pre-line; overflow-wrap: anywhere; font-size: 12px; line-height: 1.5; color: var(--muted); }
+@media (max-width: 760px) {
+  .execution:has(.execution-guidance) { height: auto; min-height: max(390px, calc(var(--app-height) - var(--app-top-inset) - var(--mobile-nav-height) - 18px)); grid-template-rows: auto minmax(140px, 1fr) auto auto auto auto; }
+  .execution-guidance { margin-bottom: 0; padding: 9px 12px; }
+}
 @media (max-width: 760px) and (display-mode: standalone) {
+  /* Installed WebKit can subtract the status bar from dvh/innerHeight on cold launch. */
   .student-layout { --app-height: 100vh; }
 }

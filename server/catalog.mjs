@@ -9,7 +9,7 @@ export function teacherLibrary(teacherId, stored) {
 }
 export function workoutMuscle(groups) {
   const names = groups.join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  if (/quadriceps|posteriores de coxa|gluteos|panturrilhas|pernas|abdomen|core/.test(names)) return 'legs';
+  if (/quadriceps|posteriores de coxa|gluteos|panturrilhas|adutores|pernas|abdomen|core/.test(names)) return 'legs';
   if (/costas|biceps/.test(names)) return 'pull';
   return 'push';
 }

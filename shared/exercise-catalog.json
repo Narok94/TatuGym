@@ -1106,5 +1106,60 @@
     "aliases": [],
     "unit": "reps",
     "defaultReps": "8–12"
+  },
+  {
+    "id": "forja:cadeira-adutora",
+    "name": "Cadeira adutora",
+    "muscleGroup": "Adutores",
+    "equipment": "Máquina adutora",
+    "instructions": "Apoie as costas e posicione as almofadas na parte interna das coxas. Aproxime as pernas com controle, sem tirar o quadril do assento.",
+    "imageUrl": "/exercises/cadeira-adutora.webp",
+    "aliases": [],
+    "unit": "reps",
+    "defaultReps": "10–15"
+  },
+  {
+    "id": "forja:rosca-direta-barra-w",
+    "name": "Rosca direta com barra W",
+    "muscleGroup": "Bíceps",
+    "equipment": "Barra W e anilhas",
+    "instructions": "Segure a barra W nas regiões inclinadas, mantenha os cotovelos próximos ao tronco e flexione os braços sem balançar o corpo.",
+    "imageUrl": "/exercises/rosca-direta-barra-w.webp",
+    "aliases": ["Rosca direto Barra W"],
+    "unit": "reps",
+    "defaultReps": "8–12"
+  },
+  {
+    "id": "forja:stiff-halteres",
+    "name": "Stiff com halteres",
+    "muscleGroup": "Posteriores de coxa",
+    "equipment": "Halteres",
+    "instructions": "Leve o quadril para trás com os joelhos levemente flexionados. Desça os halteres próximos às pernas mantendo a coluna estável, dentro da amplitude controlada.",
+    "imageUrl": "/exercises/stiff-halteres.webp",
+    "aliases": [],
+    "unit": "reps",
+    "defaultReps": "8–12"
+  },
+  {
+    "id": "forja:agachamento-bulgaro-peso-corporal",
+    "name": "Agachamento búlgaro sem carga",
+    "muscleGroup": "Quadríceps",
+    "equipment": "Banco e peso corporal",
+    "instructions": "Apoie o pé de trás no banco e mantenha o pé da frente firme no chão. Flexione a perna da frente com controle, sem carga externa, e repita do outro lado.",
+    "imageUrl": "/exercises/agachamento-bulgaro-peso-corporal.webp",
+    "aliases": ["Búlgaro solo", "Búlgaro sem peso"],
+    "unit": "reps",
+    "defaultReps": "8–12"
+  },
+  {
+    "id": "forja:encolhimento-ombros-halteres",
+    "name": "Encolhimento de ombros com halteres",
+    "muscleGroup": "Trapézio",
+    "equipment": "Halteres",
+    "instructions": "Com os braços estendidos ao lado do corpo, eleve os ombros e retorne com controle, mantendo a cabeça neutra e sem girar os ombros.",
+    "imageUrl": "/exercises/encolhimento-ombros-halteres.webp",
+    "aliases": ["Encolhimento ombro"],
+    "unit": "reps",
+    "defaultReps": "10–15"
   }
 ]

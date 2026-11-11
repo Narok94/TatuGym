@@ -51,8 +51,8 @@ test('built-in library is complete, isolated per teacher and copied into assigne
   const other=(await db.query("SELECT * FROM forja.users WHERE login='professor2'")).rows[0];
   const student=(await db.query("SELECT * FROM forja.users WHERE login='henrique'")).rows[0];
   const snapshot=await teacherRead(db,teacher);
-  assert.equal(snapshot.library.length,100);
-  for(const group of new Set(catalog.map(item=>item.muscleGroup))) assert.equal(snapshot.library.filter(item=>item.muscleGroup===group).length,10);
+  assert.equal(snapshot.library.length,catalog.length);
+  for(const group of new Set(catalog.map(item=>item.muscleGroup))) assert.equal(snapshot.library.filter(item=>item.muscleGroup===group).length,catalog.filter(item=>item.muscleGroup===group).length);
   assert.equal((await db.query("SELECT count(*)::int AS count FROM forja.exercises WHERE owner_id=$1",[teacher.id])).rows[0].count,0);
   const source=snapshot.library.find(item=>item.name==='Puxada frontal');
   await teacherMutation(db,teacher,{action:'saveExercise',id:source.id,input:{...source,instructions:'Orientação particular'}});
@@ -104,7 +104,7 @@ test('teacher import preserves IDs, timestamps, ownership and original library c
   const saved=await teacherRead(db,teacher);
   for(const key of ['students','plans','assessments']) assert.deepEqual(saved[key],immutable[key]);
   assert.deepEqual(saved.library.filter(item=>!item.id.startsWith('forja:')),immutable.library);
-  assert.equal(saved.library.filter(item=>item.id.startsWith('forja:')).length,100);
+  assert.equal(saved.library.filter(item=>item.id.startsWith('forja:')).length,catalog.length);
   assert.deepEqual(saved.profile,immutable.profiles[id]);
   assert.ok(saved.activities.some(x=>x.id==='legacy-activity'));
   const archived=await db.query('SELECT original FROM forja.local_imports WHERE user_id=$1',[id]);assert.deepEqual(archived.rows[0].original,immutable);

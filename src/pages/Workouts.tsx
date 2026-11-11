@@ -87,6 +87,7 @@ export function WorkoutDetails({
       </section>
       <section>
         <SectionTitle title="Seu roteiro de hoje" />
+        {workout.subtitle && <details className="workout-guidance"><summary>Orientações do treino</summary><p>{workout.subtitle}</p></details>}
         <div className="exercise-list">
           {workout.exercises.map((e, i) => (
             <button
@@ -107,6 +108,7 @@ export function WorkoutDetails({
                 <small>
                   {e.load} kg <span>·</span> {e.rest}s de descanso
                 </small>
+                {e.instructions && <span className="exercise-guidance">{e.instructions}</span>}
               </span>
               <ChevronRight className="mobile-chevron" size={18} />
             </button>

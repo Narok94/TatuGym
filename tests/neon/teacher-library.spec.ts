@@ -11,14 +11,14 @@ test('teacher chooses an illustrated library exercise and the student receives t
   await expect(page).toHaveURL(/#professor\/dashboard$/);
   const own = await (await context.request.get('/api/forja?action=teacher')).json();
   const builtins = own.library.filter((item: { id: string }) => item.id.startsWith('forja:'));
-  expect(builtins).toHaveLength(100);
+  expect(builtins).toHaveLength(catalog.length);
   const menu = page.getByRole('button', { name: 'Abrir menu', exact: true });
   if (await menu.isVisible()) await menu.click();
   await page.getByRole('link', { name: 'Biblioteca de exercícios', exact: true }).click();
   const filter = page.getByRole('combobox', { name: 'Filtrar grupo muscular', exact: true });
   for (const group of new Set(catalog.map(item => item.muscleGroup))) {
     await filter.selectOption(group);
-    await expect(page.locator('.teacher-library-item')).toHaveCount(10);
+    await expect(page.locator('.teacher-library-item')).toHaveCount(catalog.filter(item => item.muscleGroup === group).length);
   }
   await page.screenshot({ path: info.outputPath('biblioteca-mobile.png'), fullPage: true });
   await filter.selectOption('Costas');
@@ -60,11 +60,13 @@ test('teacher chooses an illustrated library exercise and the student receives t
     await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('button', { name: 'Treinos', exact: true }).click();
     await page.getByRole('button', { name: `Abrir ${title}`, exact: true }).click();
     await expect(page.locator('.exercise-card img').first()).toHaveAttribute('src', '/exercises/puxada-frontal.webp');
+    await expect(page.locator('.exercise-card').first()).toContainText(catalog.find(item => item.id === 'forja:puxada-frontal')!.instructions);
     await expect(page.locator('.exercise-card').last()).toContainText('30 segundos');
     await page.getByRole('button', { name: 'Executar Puxada frontal', exact: true }).click();
     const conflict = page.getByRole('button', { name: `Descartar sessão e iniciar ${title}`, exact: true });
     if (baseline.data.activeSession) await conflict.click();
     await expect(page.locator('.execution-image img')).toHaveAttribute('src', '/exercises/puxada-frontal.webp');
+    await expect(page.locator('.execution-guidance')).toContainText(catalog.find(item => item.id === 'forja:puxada-frontal')!.instructions);
     await expect.poll(() => page.locator('.execution-image img').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
     await expect.poll(async () => (await (await context.request.get('/api/forja?action=student')).json()).data.activeSession?.workout.exercises[0].imageUrl).toBe('/exercises/puxada-frontal.webp');
     await page.reload();

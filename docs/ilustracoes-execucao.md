@@ -1,5 +1,7 @@
 # Ilustrações da execução
 
+Atualização 1.2.1: cinco imagens adicionais geradas com imagegen integrado e salvas em WebP, qualidade 88, sem recorte: cadeira-adutora, rosca-direta-barra-w, stiff-halteres, agachamento-bulgaro-peso-corporal e encolhimento-ombros-halteres. Total atual: 105 imagens. O relato abaixo documenta a criação inicial da biblioteca.
+
 As 20 imagens iniciais foram preservadas, com os mesmos bytes, em `public/exercises/*.webp`; consulte o mapeamento no catálogo `shared/exercise-catalog.json`. A biblioteca agora contém 100 exercícios, com 80 novas ilustrações produzidas pela ferramenta integrada imagegen. Conversão para WebP, qualidade 92, sem recorte ou alteração das proporções; os arquivos gerados originais permanecem no diretório de geração do Codex. Os nomes abaixo registram o histórico dos primeiros arquivos.
 
 Prompt comum: Scientific educational fitness app illustration. One athletic male anatomical mannequin with sculpted silver-gray muscles, black gym equipment, orange highlighted target muscles. Correct anatomical pose and equipment, full body and equipment fully visible, centered three-quarter view. Solid near-black #0b1114 background, no text, border, labels or watermark. Realistic 3D rendering like premium anatomy exercise apps. Compact landscape composition, subject fills canvas with narrow margins.

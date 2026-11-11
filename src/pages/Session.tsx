@@ -82,6 +82,7 @@ export default function Session({ session, history, update, back, finish }: {
       <button className="execution-icon previous" disabled={currentExercise === 0} aria-label="Exercício anterior" onClick={() => move(currentExercise - 1)}><ChevronLeft /></button>
       <button className="execution-icon next" disabled={currentExercise === workout.exercises.length - 1} aria-label="Próximo exercício" onClick={() => move(currentExercise + 1)}><ChevronRight /></button>
     </div>
+    {exercise.instructions && <details className="execution-guidance"><summary>Orientações do exercício</summary><p>{exercise.instructions}</p></details>}
     <div className="execution-values" key={key}>
       <label><input aria-label={exercise.unit === 'seconds' ? 'Segundos da série atual' : 'Repetições da série atual'} type="number" inputMode="numeric" min="1" max="999" step="1" disabled={index === undefined} value={emptyField === `${key}:reps` || Number.isNaN(values.reps) ? "" : values.reps}
         onFocus={e => { if (e.currentTarget.value === "0") draft("reps", ""); else e.currentTarget.select(); }}
