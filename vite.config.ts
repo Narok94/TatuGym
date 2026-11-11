@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["icon.svg", "apple-touch-icon.png"],
+      includeAssets: ["forja-f.svg", "forja-f-apple.png"],
       manifest: {
         name: "FORJA",
         short_name: "FORJA",
@@ -24,19 +24,19 @@ export default defineConfig({
         theme_color: "#101416",
         icons: [
           {
-            src: "/icon-192.png",
+            src: "/forja-f-192.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "/icon-512.png",
+            src: "/forja-f-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "/icon-maskable.png",
+            src: "/forja-f-maskable.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
