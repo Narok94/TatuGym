@@ -12,7 +12,7 @@ let error='';
 const pendingKey=()=>`forja:pending:${userId}`;
 const emit=()=>window.dispatchEvent(new Event('forja:data'));
 export const readStudent=()=>state;
-export const viewStudent=()=>({...state.data,workouts:[...state.data.workouts,...(state.assignedPlans??[])]});
+export const viewStudent=()=>({...state.data,workouts:[...state.data.workouts,...(state.assignedPlans??[])].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR',{numeric:true,sensitivity:'base'})||a.id.localeCompare(b.id))});
 export const persistenceError=()=>error;
 export function exportPreservedData(session:AuthSession) {
   const keys=Object.keys(localStorage).filter(key=>key===`forja:pending:${session.userId}`||(session.role==='ALUNO'&&session.login==='henrique'&&(key===LEGACY_STUDENT_KEY||key.startsWith(`${LEGACY_STUDENT_KEY}:`))));
