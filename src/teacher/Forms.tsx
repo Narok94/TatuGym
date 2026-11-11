@@ -49,14 +49,14 @@ export function StudentEditor({ student, close, save }: { student?: Student; clo
           <label className="teacher-check"><input type="checkbox" checked={resetPassword} onChange={event => setResetPassword(event.target.checked)} />Definir nova senha temporária</label>
         </>}
         {needsPassword && <>
-          <label>Senha temporária<input required type={showPassword ? 'text' : 'password'} minLength={15} maxLength={128} autoComplete="new-password" value={temporaryPassword} onChange={event => { setTemporaryPassword(event.target.value); setCopyNotice(''); }} /></label>
+          <label>Senha temporária<input required type={showPassword ? 'text' : 'password'} minLength={6} maxLength={128} autoComplete="new-password" value={temporaryPassword} onChange={event => { setTemporaryPassword(event.target.value); setCopyNotice(''); }} /></label>
           <div className="teacher-row-actions">
             <button type="button" className="button secondary" onClick={() => { setTemporaryPassword(Array.from(crypto.getRandomValues(new Uint8Array(12)), byte => byte.toString(16).padStart(2, '0')).join('')); setShowPassword(true); setCopyNotice(''); }}>Gerar senha temporária</button>
             <button type="button" className="button secondary" onClick={() => setShowPassword(!showPassword)}>{showPassword ? 'Ocultar senha temporária' : 'Mostrar senha temporária'}</button>
-            <button type="button" className="button secondary" disabled={!login || temporaryPassword.length < 15} onClick={async () => { try { await navigator.clipboard.writeText(`Login: ${login.trim().toLowerCase()}\nSenha temporária: ${temporaryPassword}`); setCopyNotice('Acesso copiado. Entregue ao aluno após salvar.'); } catch { setCopyNotice('Não foi possível copiar. Anote o login e a senha antes de salvar.'); } }}>Copiar acesso</button>
+            <button type="button" className="button secondary" disabled={!login || temporaryPassword.length < 6} onClick={async () => { try { await navigator.clipboard.writeText(`Login: ${login.trim().toLowerCase()}\nSenha temporária: ${temporaryPassword}`); setCopyNotice('Acesso copiado. Entregue ao aluno após salvar.'); } catch { setCopyNotice('Não foi possível copiar. Anote o login e a senha antes de salvar.'); } }}>Copiar acesso</button>
           </div>
           {copyNotice && <p className="teacher-form-note" role="status">{copyNotice}</p>}
-          <p className="teacher-form-note">Use pelo menos 15 caracteres. Copie ou anote a senha antes de salvar; ela não poderá ser consultada depois. O aluno precisará escolher outra senha no primeiro acesso.{student?.access ? ' Ao salvar, as sessões anteriores serão encerradas.' : ''}</p>
+          <p className="teacher-form-note">Use pelo menos 6 caracteres. Copie ou anote a senha antes de salvar; ela não poderá ser consultada depois. O aluno precisará escolher outra senha no primeiro acesso.{student?.access ? ' Ao salvar, as sessões anteriores serão encerradas.' : ''}</p>
         </>}
       </>}
     </fieldset>

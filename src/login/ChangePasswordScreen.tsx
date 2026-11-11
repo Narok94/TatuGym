@@ -16,8 +16,8 @@ export default function ChangePasswordScreen({ change, logout }: {
   const [error, setError] = useState('');
   const fields = [
     { name: 'Senha temporária', value: currentPassword, set: setCurrentPassword, complete: 'current-password', min: 1 },
-    { name: 'Nova senha', value: newPassword, set: setNewPassword, complete: 'new-password', min: 15 },
-    { name: 'Confirmar nova senha', value: confirmation, set: setConfirmation, complete: 'new-password', min: 15 },
+    { name: 'Nova senha', value: newPassword, set: setNewPassword, complete: 'new-password', min: 6 },
+    { name: 'Confirmar nova senha', value: confirmation, set: setConfirmation, complete: 'new-password', min: 6 },
   ];
   return <div className="forja-login forja-change-password"><main className="forja-login-main">
     <img className="forja-login-logo" src={logo} alt="FORJA — Sua evolução é construída." />
@@ -36,7 +36,7 @@ export default function ChangePasswordScreen({ change, logout }: {
           <div className="forja-input"><LockKeyhole size={23} aria-hidden="true" /><input id={`${id}-${index}`} type={visible ? 'text' : 'password'} required minLength={field.min} maxLength={128} autoComplete={field.complete} disabled={pending} value={field.value} onChange={event => field.set(event.target.value)} /></div>
         </div>)}
         <button type="button" className="forja-show-password" aria-pressed={visible} onClick={() => setVisible(!visible)}>{visible ? <EyeOff size={18} /> : <Eye size={18} />}{visible ? 'Ocultar senhas' : 'Mostrar senhas'}</button>
-        <p className="forja-login-message">Use pelo menos 15 caracteres. Você pode usar uma frase com espaços.</p>
+        <p className="forja-login-message">Use pelo menos 6 caracteres. Você pode usar uma frase com espaços.</p>
         {error && <p className="forja-login-error" role="alert">{error}</p>}
         <button type="submit" className="forja-enter" disabled={pending}>{pending ? 'Salvando…' : 'Salvar senha e entrar'}</button>
         <button type="button" className="forja-recovery" disabled={pending} onClick={async () => { setPending(true); try { await logout(); } catch (reason) { setError((reason as Error).message); } finally { setPending(false); } }}>Sair da conta</button>

@@ -12,7 +12,7 @@ test('teacher provisions and resets student access; first login requires a priva
   test.setTimeout(120000);
   const username = `aluno-${info.project.name}`;
   const name = `Aluno ${info.project.name}`;
-  const permanent = 'Minha senha privada de treino 2026';
+  const permanent = 'Aluno6';
   await login(page, 'professor', process.env.FORJA_SEED_TEACHER_PASSWORD!);
   await expect(page).toHaveURL(/#professor\/dashboard$/);
   await page.evaluate(() => { location.hash = 'professor/alunos'; });
@@ -21,8 +21,13 @@ test('teacher provisions and resets student access; first login requires a priva
   await page.getByLabel('E-mail do aluno', { exact: true }).fill(`${username}@example.test`);
   await page.getByLabel('Login do aluno', { exact: true }).fill(username);
   await page.getByRole('button', { name: 'Gerar senha temporária', exact: true }).click();
-  const temporary = await page.getByLabel('Senha temporária', { exact: true }).inputValue();
-  expect(temporary.length).toBeGreaterThanOrEqual(15);
+  expect((await page.getByLabel('Senha temporária', { exact: true }).inputValue()).length).toBeGreaterThanOrEqual(6);
+  await expect(page.getByLabel('Senha temporária', { exact: true })).toHaveAttribute('minlength', '6');
+  await page.getByLabel('Senha temporária', { exact: true }).fill('curta');
+  await expect(page.getByRole('button', { name: 'Copiar acesso', exact: true })).toBeDisabled();
+  const temporary = 'Temp06';
+  await page.getByLabel('Senha temporária', { exact: true }).fill(temporary);
+  await expect(page.getByRole('button', { name: 'Copiar acesso', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Ocultar senha temporária', exact: true }).click();
   await page.locator('.teacher-student-access').scrollIntoViewIfNeeded();
   await page.screenshot({ path: info.outputPath('professor-acesso-aluno.png') });
@@ -58,6 +63,8 @@ test('teacher provisions and resets student access; first login requires a priva
   expect((await pupil.request.post('/api/forja?action=change-password', { data: { currentPassword: temporary, newPassword: 'short' } })).status()).toBe(400);
   const oldCookie = (await pupil.cookies()).find(cookie => cookie.name === 'forja_session')!.value;
   await pupilPage.getByLabel('Senha temporária', { exact: true }).fill(temporary);
+  await expect(pupilPage.getByLabel('Nova senha', { exact: true })).toHaveAttribute('minlength', '6');
+  await expect(pupilPage.getByLabel('Confirmar nova senha', { exact: true })).toHaveAttribute('minlength', '6');
   await pupilPage.getByLabel('Nova senha', { exact: true }).fill(permanent);
   await pupilPage.getByLabel('Confirmar nova senha', { exact: true }).fill('Outra senha de confirmação');
   await pupilPage.getByRole('button', { name: 'Salvar senha e entrar', exact: true }).click();
@@ -89,7 +96,8 @@ test('teacher provisions and resets student access; first login requires a priva
   await page.getByRole('button', { name: `Editar ${name}`, exact: true }).click();
   await page.getByLabel('Definir nova senha temporária', { exact: true }).check();
   await page.getByRole('button', { name: 'Gerar senha temporária', exact: true }).click();
-  const reset = await page.getByLabel('Senha temporária', { exact: true }).inputValue();
+  const reset = 'Reset6';
+  await page.getByLabel('Senha temporária', { exact: true }).fill(reset);
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   expect((await pupil.request.get('/api/forja?action=student')).status()).toBe(401);

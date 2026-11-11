@@ -4,11 +4,11 @@ Em **Alunos → Cadastrar aluno**, o professor define o perfil, um login único 
 
 O botão **Gerar senha temporária** usa o gerador criptográfico do navegador. **Copiar acesso** copia o login e a senha para que o professor os entregue ao aluno após salvar. A senha temporária deve ser copiada ou anotada antes de salvar: ela não aparece nas consultas seguintes. As credenciais nunca são incluídas no perfil, nas atividades ou nas exportações do professor.
 
-Ao entrar, o aluno precisa confirmar a senha temporária e escolher uma senha diferente, com pelo menos 15 caracteres. Somente após essa troca os treinos ficam disponíveis. Alterar a rota, recarregar a página ou chamar a API diretamente não contorna a exigência. A senha própria do aluno não pode ser consultada pelo professor.
+Ao entrar, o aluno precisa confirmar a senha temporária e escolher uma senha diferente, com pelo menos 6 caracteres. Somente após essa troca os treinos ficam disponíveis. Alterar a rota, recarregar a página ou chamar a API diretamente não contorna a exigência. A senha própria do aluno não pode ser consultada pelo professor.
 
 Para redefinir, entre em **Alunos → Editar → Acesso ao aplicativo → Definir nova senha temporária**. A conta permanece vinculada ao mesmo perfil; os dados, o histórico e os planos atribuídos são preservados. As sessões antigas são revogadas ao redefinir a senha. A troca pelo aluno também revoga as demais sessões e cria uma nova sessão para o acesso atual.
 
-As senhas novas usam de 15 a 128 caracteres, permitem espaços e são armazenadas com o scrypt já usado no projeto. A política de comprimento e a renovação de sessão seguem as orientações consultadas em [OWASP Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html) e [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html). Não há exigência de trocar periodicamente a senha própria.
+As senhas novas usam de 6 a 128 caracteres, permitem espaços e são armazenadas com o scrypt já usado no projeto. O mínimo de 6 caracteres é a política definida para o aplicativo. A renovação de sessão mantém o comportamento descrito acima. Não há exigência de trocar periodicamente a senha própria.
 
 ## Implantação
 
