@@ -85,7 +85,7 @@ export default function AppRoot() {
   return <>{error && <p role="alert" className="storage-error">{error}</p>}
     {session.role === "PROFESSOR"
       ? <Suspense fallback={<div role="status">Carregando…</div>}><TeacherApp key={session.userId} teacherId={session.teacherId} route={route} leave={leave} /></Suspense>
-      : <App key={session.userId} onLogout={leave} localDataNotice={localDataNotice && (
+      : <App key={session.userId} cardioEnabled={session.login === 'henrique'} onLogout={leave} localDataNotice={localDataNotice && (
         <div className="offline-banner local-data-notice">
           <p role="status">{localDataNotice}</p>
           <button className="button secondary" onClick={()=>exportPreservedData(session)}>Exportar cópia local</button>

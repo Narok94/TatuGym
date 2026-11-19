@@ -13,6 +13,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node scripts/test-neon.mjs",
     "test:neon": "node scripts/test-neon.mjs",
+    "test:cardio": "node --test tests/cardio-circuit.test.mjs && playwright test --config playwright.cardio.config.ts",
     "verify:teacher-production": "node scripts/verify-teacher-production.mjs"
   },
   "dependencies": {

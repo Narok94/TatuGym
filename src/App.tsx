@@ -22,13 +22,15 @@ import Session from "./pages/Session";
 import Diet from "./pages/Diet";
 import Progress from "./pages/Progress";
 import Profile from "./pages/Profile";
+import Cardio from "./pages/Cardio";
 
 interface InstallPrompt extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: string }>;
 }
 const readPage = () => location.hash.slice(1) || "home";
-export default function App({ onLogout, localDataNotice }: {
+export default function App({ onLogout, localDataNotice, cardioEnabled = false }: {
+  cardioEnabled?: boolean;
   onLogout?: () => void;
   localDataNotice?: ReactNode;
 } = {}) {
@@ -253,6 +255,7 @@ export default function App({ onLogout, localDataNotice }: {
         </div>
       )}
       <main className="main-content" id="main-content">
+        {cardioEnabled && <div hidden={page !== "cardio"}><Cardio /></div>}
         {page === "home" ? (
           <Home data={data} navigate={navigate} start={start} />
         ) : page === "workouts" ? (
@@ -273,6 +276,8 @@ export default function App({ onLogout, localDataNotice }: {
             back={() => navigate(`workout/${data.activeSession!.workout.id}`)}
             finish={() => setFinishModal(true)}
           />
+        ) : page === "cardio" && cardioEnabled ? (
+          null
         ) : page === "diet" ? (
           <Diet
             meals={data.meals}
@@ -467,7 +472,7 @@ export default function App({ onLogout, localDataNotice }: {
       )}
     </div>
     </div>
-    <BottomNav page={page} navigate={navigate} />
+    <BottomNav page={page} navigate={navigate} cardioEnabled={cardioEnabled} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Dumbbell,
   Home,
+  HeartPulse,
   UserRound,
   Utensils,
   X,
@@ -55,15 +56,18 @@ export function PageHeader({
 export function BottomNav({
   page,
   navigate,
+  cardioEnabled = false,
 }: {
   page: string;
   navigate: (page: string) => void;
+  cardioEnabled?: boolean;
 }) {
   return (
-    <nav className="bottom-nav" aria-label="Navegação principal">
+    <nav className={`bottom-nav${cardioEnabled ? " with-cardio" : ""}`} aria-label="Navegação principal">
       {[
         { id: "home", label: "Início", icon: Home },
         { id: "workouts", label: "Treinos", icon: Dumbbell },
+        ...(cardioEnabled ? [{ id: "cardio", label: "Cardio", icon: HeartPulse }] : []),
         { id: "diet", label: "Dieta", icon: Utensils },
         { id: "profile", label: "Perfil", icon: UserRound },
       ].map(({ id, label, icon: Icon }) => (

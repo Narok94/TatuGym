@@ -580,6 +580,116 @@ strong {
   z-index: 30;
   box-shadow: 0 8px 40px #00000012;
 }
+.bottom-nav.with-cardio {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.bottom-nav.with-cardio button {
+  min-width: 0;
+  padding-inline: 4px;
+}
+.cardio-guidance {
+  padding: 20px;
+}
+.cardio-guidance > svg {
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.cardio-guidance p {
+  margin-top: 8px;
+  line-height: 1.6;
+}
+.cardio-exercises {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  display: grid;
+  gap: 12px;
+}
+.cardio-exercise {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+}
+.cardio-exercise h2 {
+  font-size: 16px;
+}
+.cardio-exercise p {
+  margin-top: 6px;
+}
+.cardio-timer {
+  padding: clamp(16px, 4vw, 28px);
+  margin-bottom: 16px;
+  text-align: center;
+}
+.cardio-timer-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+  font-size: 13px;
+}
+.cardio-timer h2 { font-size: clamp(20px, 4vw, 28px); }
+.cardio-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.cardio-rest .cardio-stage { display: block; }
+.cardio-current-image {
+  width: 100%;
+  max-height: 220px;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  background: #0b1114;
+  border-radius: 14px;
+}
+.cardio-clock {
+  font-size: clamp(44px, 10vw, 96px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  margin: 14px 0;
+  color: var(--accent);
+}
+.cardio-rest .cardio-clock { color: var(--text); }
+.cardio-progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--accent);
+}
+.cardio-next { margin-top: 12px; font-size: 13px; }
+.cardio-controls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.cardio-rope {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  margin-top: 18px;
+}
+.cardio-rope select { width: auto; }
+.cardio-exercise-image {
+  width: clamp(72px, 18vw, 128px);
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  background: #0b1114;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.cardio-exercise .exercise-number { display: none; }
+.cardio-exercise-active { border-color: var(--accent); }
 .bottom-nav button {
   display: flex;
   align-items: center;
